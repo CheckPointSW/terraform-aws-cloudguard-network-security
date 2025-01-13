@@ -1,7 +1,7 @@
 ![GitHub Wachers](https://img.shields.io/github/watchers/checkpointsw/terraform-aws-cloudguard-network-security)
 ![GitHub Release](https://img.shields.io/github/v/release/checkpointsw/terraform-aws-cloudguard-network-security)
-![GitHub Commits Since Last Commit](https://img.shields.io/github/commits-since/checkpointsw/terraform-aws-cloudguard-network-security/latest/main)
-![GitHub Last Commit](https://img.shields.io/github/last-commit/checkpointsw/terraform-aws-cloudguard-network-security/main)
+![GitHub Commits Since Last Commit](https://img.shields.io/github/commits-since/checkpointsw/terraform-aws-cloudguard-network-security/latest/master)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/checkpointsw/terraform-aws-cloudguard-network-security/master)
 ![GitHub Repo Size](https://img.shields.io/github/repo-size/checkpointsw/terraform-aws-cloudguard-network-security)
 ![GitHub Downloads](https://img.shields.io/github/downloads/checkpointsw/terraform-aws-cloudguard-network-security/total)
 
