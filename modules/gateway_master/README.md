@@ -14,9 +14,9 @@ These types of Terraform resources are supported:
 See the [Automatically Provision a CloudGuard Security Gateway in AWS](https://supportcenter.us.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk131434) for additional information
 
 This solution uses the following modules:
-- /terraform/aws/gateway
-- /terraform/aws/amis
-- /terraform/aws/vpc
+- gateway
+- amis
+- vpc
 
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/checkpointsw/cloudguard-network-security/aws/latest#:~:text=Best%20Practices%20for%20Using%20Our%20Modules).

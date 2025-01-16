@@ -14,10 +14,10 @@ These types of Terraform resources are supported:
 See the [Check Point CloudGuard Gateway Load Balancer on AWS](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_AWS_Centralized_Gateway_Load_Balancer/Content/Topics-AWS-GWLB-VPC-DG/Introduction.htm) for additional information
 
 This solution uses the following modules:
-- /terraform/aws/autoscale_gwlb
-- /terraform/aws/management
-- /terraform/aws/cme_iam_role_gwlb
-- /terraform/aws/amis
+- autoscale_gwlb
+- management
+- cme_iam_role_gwlb
+- amis
 
 ## Usage
 Follow best practices for using CGNS modules on [the root page](https://registry.terraform.io/modules/checkpointsw/cloudguard-network-security/aws/latest#:~:text=Best%20Practices%20for%20Using%20Our%20Modules).

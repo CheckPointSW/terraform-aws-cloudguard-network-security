@@ -12,7 +12,7 @@ These types of Terraform resources are supported:
 See the [CloudGuard Auto Scaling for AWS](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CloudGuard_Network_for_AWS_AutoScaling_DeploymentGuide/Topics-AWS-AutoScale-DG/Check-Point-CloudGuard-Network-for-AWS.htm) for additional information
 
 This solution uses the following modules:
-- /terraform/aws/amis
+- amis
 
 
 ## Usage
