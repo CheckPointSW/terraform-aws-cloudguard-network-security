@@ -2,8 +2,6 @@
 module "amis" {
   source = "../amis"
   version_license = var.gateway_version
-  amis_url = "https://cgi-cfts-staging.s3.amazonaws.com/utils/amis.yaml"
-
 }
 
 resource "aws_security_group" "permissive_sg" {
