@@ -3,17 +3,17 @@ output "Deployment" {
 }
 
 output "management_instance_id" {
-  value = aws_instance.management-instance.id
+  value = module.launch_management_into_vpc.management_instance_id
 }
 output "management_instance_name" {
-  value = aws_instance.management-instance.tags["Name"]
+  value = module.launch_management_into_vpc.management_instance_name
 }
 output "management_instance_tags" {
-  value = aws_instance.management-instance.tags
+  value = module.launch_management_into_vpc.management_instance_tags
 }
 output "management_public_ip" {
-  value = aws_instance.management-instance.public_ip
+  value = module.launch_management_into_vpc.management_public_ip
 }
 output "management_url" {
-  value = format("https://%s", aws_instance.management-instance.public_ip)
+  value = module.launch_management_into_vpc.management_url
 }
