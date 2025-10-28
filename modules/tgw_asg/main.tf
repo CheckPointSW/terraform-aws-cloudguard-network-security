@@ -9,6 +9,7 @@ module "autoscale" {
   key_name = var.key_name
   enable_volume_encryption = var.enable_volume_encryption
   enable_instance_connect = var.enable_instance_connect
+  instances_tags = var.instances_tags
   metadata_imdsv2_required = var.metadata_imdsv2_required
   minimum_group_size = var.gateways_min_group_size
   maximum_group_size = var.gateways_max_group_size

@@ -34,7 +34,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/cluster_master"
-    version = "1.0.2"
+    version = "1.0.4"
 
 
     // --- VPC Network Configuration ---

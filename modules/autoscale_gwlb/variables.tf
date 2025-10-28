@@ -97,7 +97,7 @@ variable "enable_volume_encryption" {
 }
 variable "instances_tags" {
   type = map(string)
-  description = "(Optional) A map of tags as key=value pairs. All tags will be added on all AutoScaling Group instances"
+  description = "(Optional) A map of tags as key=value pairs. All tags will be added on all Auto Scaling Group instances"
   default = {}
 }
 variable "metadata_imdsv2_required" {

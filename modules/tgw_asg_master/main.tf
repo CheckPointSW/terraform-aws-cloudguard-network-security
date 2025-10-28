@@ -18,6 +18,7 @@ module "launch_tgw_asg_into_vpc" {
   enable_volume_encryption = var.enable_volume_encryption
   enable_instance_connect = var.enable_instance_connect
   disable_instance_termination = var.disable_instance_termination
+  instances_tags = var.instances_tags
   metadata_imdsv2_required = var.metadata_imdsv2_required
   allow_upload_download = var.allow_upload_download
   gateway_name = var.gateway_name

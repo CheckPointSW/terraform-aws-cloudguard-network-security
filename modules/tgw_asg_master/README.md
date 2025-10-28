@@ -34,7 +34,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/tgw_asg_master"
-    version = "1.0.2"
+    version = "1.0.4"
   
     // --- Network Configuration ---
     vpc_cidr = "10.0.0.0/16"

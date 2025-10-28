@@ -28,7 +28,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/cross_az_cluster"
-    version = "1.0.2"
+    version = "1.0.4"
 
     // --- VPC Network Configuration ---
     vpc_id = "vpc-12345678"
