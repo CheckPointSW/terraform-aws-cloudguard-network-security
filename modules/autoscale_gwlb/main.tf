@@ -16,35 +16,27 @@ resource "aws_security_group" "permissive_sg" {
 resource "aws_vpc_security_group_ingress_rule" "ingress_rule_ipv4" {
   security_group_id = aws_security_group.permissive_sg.id
   cidr_ipv4         = "0.0.0.0/0"
-        from_port    = 0
   ip_protocol       = "-1"
-        to_port      = 0
     }
 
 resource "aws_vpc_security_group_egress_rule" "egress_rule_ipv4" {
   security_group_id = aws_security_group.permissive_sg.id
   cidr_ipv4         = "0.0.0.0/0"
-    from_port = 0
   ip_protocol       = "-1"
-    to_port = 0
   }
 
 resource "aws_vpc_security_group_ingress_rule" "ingress_rule_ipv6" {
   count = var.enable_ipv6 ? 1 : 0
   security_group_id = aws_security_group.permissive_sg.id
   cidr_ipv6         = "::/0"
-  from_port         = 0
   ip_protocol       = "-1"
-  to_port           = 0
   }  
 
 resource "aws_vpc_security_group_egress_rule" "egress_rule_ipv6" {
   count = var.enable_ipv6 ? 1 : 0
   security_group_id = aws_security_group.permissive_sg.id
   cidr_ipv6         = "::/0"
-        from_port    = 0
   ip_protocol       = "-1"
-        to_port      = 0
 }
 
 resource "aws_launch_template" "asg_launch_template" {
@@ -60,8 +52,11 @@ resource "aws_launch_template" "asg_launch_template" {
     http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
   }
 
-  iam_instance_profile {
-    name = ( var.enable_cloudwatch ? aws_iam_instance_profile.instance_profile[0].name : "")
+  dynamic "iam_instance_profile" {
+    for_each = var.enable_cloudwatch ? [1] : []
+    content {
+      name = aws_iam_instance_profile.instance_profile[0].name
+    }
   }
 
   monitoring {

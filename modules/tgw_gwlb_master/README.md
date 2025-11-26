@@ -31,7 +31,7 @@ provider "aws" {}
 
 module "example_module" {
 
-    source  = "CheckPointSW/cloudguard-network-security/aws//modules/tgw_gwlb"
+    source  = "CheckPointSW/cloudguard-network-security/aws//modules/tgw_gwlb_master"
     version = "1.0.4"
 
     // --- VPC Network Configuration --
