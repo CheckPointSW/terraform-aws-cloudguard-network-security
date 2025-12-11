@@ -23,7 +23,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/cme_iam_role"
-    version = "1.0.4"
+    version = "1.0.5"
 
     permissions = "Create with read permissions"
     sts_roles = ['arn:aws:iam::111111111111:role/role_name']
