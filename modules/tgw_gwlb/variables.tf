@@ -217,15 +217,18 @@ variable "gateway_password_hash" {
   type = string
   description = "(Optional) Admin user's password hash (use command 'openssl passwd -6 PASSWORD' to get the PASSWORD's hash)"
   default = ""
+  sensitive = true
 }
 variable "gateway_maintenance_mode_password_hash" {
   description = "Maintenance mode password hash for the gateway instances, relevant only for R81.20 and higher versions"
   type = string
   default = ""
+  sensitive = true
 }
 variable "gateway_SICKey" {
   type = string
   description = "The Secure Internal Communication key for trusted connection between Check Point components (at least 8 alphanumeric characters)"
+  sensitive = true
 }
 
 variable "gateways_provision_address_type" {
@@ -290,11 +293,13 @@ variable "management_password_hash" {
   type = string
   description = "(Optional) Admin user's password hash (use command 'openssl passwd -6 PASSWORD' to get the PASSWORD's hash)"
   default = ""
+  sensitive = true
 }
 variable "management_maintenance_mode_password_hash" {
   description = "Maintenance mode password hash for the management instance, relevant only for R81.20 and higher versions"
   type = string
   default = ""
+  sensitive = true
 }
 variable "gateways_policy" {
   type = string

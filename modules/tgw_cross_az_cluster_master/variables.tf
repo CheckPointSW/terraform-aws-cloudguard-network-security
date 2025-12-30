@@ -124,25 +124,30 @@ variable "admin_shell" {
 variable "gateway_SICKey" {
   type = string
   description = "The Secure Internal Communication key for trusted connection between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters"
+  sensitive = true
 }
 variable "gateway_password_hash" {
   type = string
   description = "(Optional) Admin user's password hash (use command 'openssl passwd -6 PASSWORD' to get the PASSWORD's hash)"
   default = ""
+  sensitive = true
 }
 variable "gateway_maintenance_mode_password_hash" {
   description = "Maintenance mode password hash for the gateway instances, relevant only for R81.20 and higher versions"
   type = string
   default = ""
+  sensitive = true
 }
 // --- Quick connect to Smart-1 Cloud (Recommended) ---
 variable "memberAToken" {
   type = string
   description = "Follow the instructions in sk180501 to quickly connect this Cross AZ Cluster to Smart-1 Cloud."
+  sensitive = true
 }
 variable "memberBToken" {
   type = string
   description = "Follow the instructions in sk180501 to quickly connect this Cross AZ Cluster to Smart-1 Cloud."
+  sensitive = true
 }
 
 // --- Advanced Settings ---

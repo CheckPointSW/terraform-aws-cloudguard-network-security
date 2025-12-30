@@ -114,11 +114,13 @@ variable "management_password_hash" {
   type = string
   description = "(Optional) Admin user's password hash (use command 'openssl passwd -6 PASSWORD' to get the PASSWORD's hash)"
   default = ""
+  sensitive = true
 }
 variable "management_maintenance_mode_password_hash" {
   description = "(optional) Check Point recommends setting Admin user's password and maintenance-mode password for recovery purposes. For R81.10 and below the Admin user's password is used also as maintenance-mode password. (To generate a password hash use the command 'grub2-mkpasswd-pbkdf2' on Linux and paste it here)."
   type = string
   default = ""
+  sensitive = true
 }
 
 // --- Security Management Server Settings ---
@@ -136,6 +138,7 @@ variable "SICKey" {
   type = string
   description = "Mandatory only when deploying a secondary Management Server, the Secure Internal Communication key creates trusted connections between Check Point components. Choose a random string consisting of at least 8 alphanumeric characters"
   default = ""
+  sensitive = true
 }
 variable "allow_upload_download" {
   type = bool
