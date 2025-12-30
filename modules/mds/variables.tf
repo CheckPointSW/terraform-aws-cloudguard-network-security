@@ -33,7 +33,7 @@ variable "key_name" {
 variable "volume_size" {
   type = number
   description = "Root volume size (GB) - minimum 100"
-  default = 100
+  default = 200
 }
 resource "null_resource" "volume_size_too_small" {
   // Will fail if var.volume_size is less than 100
