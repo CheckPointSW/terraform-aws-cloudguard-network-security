@@ -5,7 +5,7 @@ module "launch_vpc" {
   public_subnets_map = var.public_subnets_map
   private_subnets_map = {}
   subnets_bit_length = var.subnets_bit_length
-  enable_ipv6 = var.enable_ipv6
+  ip_mode = var.ip_mode
 }
 
 module "gwlb" {
@@ -57,5 +57,5 @@ module "gwlb" {
   gateways_addresses = var.gateways_addresses
 
   volume_type = var.volume_type
-  enable_ipv6 = var.enable_ipv6
+  ip_mode = var.ip_mode
 }

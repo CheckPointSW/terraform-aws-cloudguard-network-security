@@ -33,6 +33,10 @@ locals {
 
   regex_valid_cidr_range = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))?$"
 
+  # IPv6 configuration helpers
+  ipv6_enabled = var.ip_mode != "IPv4"
+  ipv4_enabled = var.ip_mode != "IPv6"
+
   tags_asg_format = null_resource.tags_as_list_of_maps.*.triggers
 
   //Splits the version and licence and returns the os version

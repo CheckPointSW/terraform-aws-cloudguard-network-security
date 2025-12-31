@@ -15,7 +15,8 @@ resource "aws_security_group" "permissive_sg" {
       from_port   = ingress.value.from_port
       to_port     = ingress.value.to_port
       protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if strcontains(cidr, ".")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }
 
@@ -25,7 +26,8 @@ resource "aws_security_group" "permissive_sg" {
         from_port    = 0
         to_port      = 0
         protocol     = "-1"
-        cidr_blocks  = ["0.0.0.0/0"]
+        cidr_blocks  = local.ipv4_enabled ? ["0.0.0.0/0"] : []
+        ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
 
@@ -35,7 +37,8 @@ resource "aws_security_group" "permissive_sg" {
       from_port   = egress.value.from_port
       to_port     = egress.value.to_port
       protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in egress.value.cidr_blocks : cidr if strcontains(cidr, ".")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in egress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }
 
@@ -45,26 +48,13 @@ resource "aws_security_group" "permissive_sg" {
         from_port    = 0
         to_port      = 0
         protocol     = "-1"
-        cidr_blocks  = ["0.0.0.0/0"]
+        cidr_blocks  = local.ipv4_enabled ? ["0.0.0.0/0"] : []
+        ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
   tags = {
     Name = format("%s_PermissiveSecurityGroup", local.asg_name)
   }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "ingress_rule_ipv6" {
-  count = var.enable_ipv6 ? 1 : 0
-  security_group_id = aws_security_group.permissive_sg.id
-  cidr_ipv6         = "::/0"
-  ip_protocol       = "-1"
-  }  
-
-resource "aws_vpc_security_group_egress_rule" "egress_rule_ipv6" {
-  count = var.enable_ipv6 ? 1 : 0
-  security_group_id = aws_security_group.permissive_sg.id
-  cidr_ipv6         = "::/0"
-  ip_protocol       = "-1"
 }
 
 resource "aws_launch_template" "asg_launch_template" {
@@ -102,7 +92,7 @@ resource "aws_launch_template" "asg_launch_template" {
 
   description = "Initial template version"
 
-  user_data = base64encode(templatefile("${path.module}/${var.enable_ipv6 ? "asg_userdata_ipv6.yaml" : "asg_userdata.yaml"}", {
+  user_data = base64encode(templatefile("${path.module}/asg_userdata.yaml", {
     // script's arguments
     PasswordHash = local.gateway_password_hash_base64,
     MaintenanceModePassword = local.maintenance_mode_password_hash_base64,
@@ -113,7 +103,7 @@ resource "aws_launch_template" "asg_launch_template" {
     AllowUploadDownload = var.allow_upload_download,
     BootstrapScript = local.gateway_bootstrap_script64,
     OsVersion = local.version_split
-    enable_ipv6 = var.enable_ipv6
+    IPMode = var.ip_mode == "IPv4" ? "false" : "true"
   }))
 }
 resource "aws_autoscaling_group" "asg" {

@@ -18,14 +18,14 @@ module "gateway_load_balancer" {
   target_group_port = 6081
   listener_port = 6081
   cross_zone_load_balancing = var.enable_cross_zone_load_balancing
-  enable_ipv6 = var.enable_ipv6
+  ip_mode = var.ip_mode
 }
 
 resource "aws_vpc_endpoint_service" "gwlb_endpoint_service" {
 depends_on = [module.gateway_load_balancer]
   gateway_load_balancer_arns = module.gateway_load_balancer[*].load_balancer_arn
   acceptance_required        = var.connection_acceptance_required
-  supported_ip_address_types = var.enable_ipv6 ? ["ipv4", "ipv6"] : ["ipv4"]
+  supported_ip_address_types = var.ip_mode != "IPv4" ? ["ipv4", "ipv6"] : ["ipv4"]
   tags = {
     "Name" = "gwlb-endpoint-service-${var.gateway_load_balancer_name}"
   }
@@ -59,7 +59,7 @@ module "autoscale_gwlb" {
   management_server = var.management_server
   configuration_template = var.configuration_template
   volume_type = var.volume_type
-  enable_ipv6 = var.enable_ipv6
+  ip_mode = var.ip_mode
 }
 
 data "aws_region" "current"{}

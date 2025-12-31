@@ -60,8 +60,12 @@ variable "health_check_protocol" {
   type = string
   default = null
 }
-variable "enable_ipv6" {
-  type = bool
-  description = "Enable IPv6 settings of AWS resources."
-  default = false
+variable "ip_mode" {
+  type = string
+  description = "IP mode of AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4 or DualStack."
+  }
 }

@@ -19,9 +19,12 @@ variable "subnets_bit_length" {
   type = number
   description = "Number of additional bits with which to extend the vpc cidr. For example, if given a vpc_cidr ending in /16 and a subnets_bit_length value of 4, the resulting subnet address will have length /20."
 }
-variable "enable_ipv6" {
-  type = bool
-  description = "Enable IPv6 settings of AWS resources."
-  default = false
+variable "ip_mode" {
+  type = string
+  description = "IP mode of AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack", "IPv6"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4, DualStack, or IPv6."
+  }
 }
-

@@ -16,6 +16,6 @@ output "public_rtb" {
 output "aws_igw" {
   value = aws_internet_gateway.igw.id
 }
-output "enable_ipv6"{
-   value = aws_vpc.vpc.assign_generated_ipv6_cidr_block
+output "ip_mode"{
+   value = var.ip_mode
 }

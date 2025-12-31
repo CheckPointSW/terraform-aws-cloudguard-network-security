@@ -12,7 +12,7 @@ resource "aws_lb" "load_balancer" {
   security_groups = var.security_groups
   tags = var.tags
   enable_cross_zone_load_balancing = var.cross_zone_load_balancing
-  ip_address_type = var.enable_ipv6 ? "dualstack" : "ipv4"
+  ip_address_type = var.ip_mode != "IPv4" ? "dualstack" : "ipv4"
 }
 resource "aws_lb_target_group" "lb_target_group" {
   name  = substr(format("%s-%s", "${var.prefix_name}-TG", random_id.unique_lb_id.hex), 0, 32)
