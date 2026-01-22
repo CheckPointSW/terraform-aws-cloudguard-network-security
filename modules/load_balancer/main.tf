@@ -30,6 +30,7 @@ resource "aws_lb_listener" "lb_listener" {
   certificate_arn = var.certificate_arn
   protocol = var.load_balancers_type != "gateway" ? var.load_balancer_protocol : null
   port = var.load_balancers_type != "gateway" ? var.listener_port : null
+  tcp_idle_timeout_seconds = var.tcp_idle_timeout > 0 ? var.tcp_idle_timeout : null
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.lb_target_group.arn

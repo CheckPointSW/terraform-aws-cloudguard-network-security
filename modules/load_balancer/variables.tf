@@ -60,6 +60,17 @@ variable "health_check_protocol" {
   type = string
   default = null
 }
+
+variable "tcp_idle_timeout" {
+  description = "The idle timeout of the load balancer."
+  type = number
+  default = null
+  validation {
+    condition = var.tcp_idle_timeout == null || (var.tcp_idle_timeout >= 60 && var.tcp_idle_timeout <= 6000)
+    error_message = "The tcp_idle_timeout value must be between 60 and 6000 seconds"
+  }
+}
+
 variable "ip_mode" {
   type = string
   description = "IP mode of AWS resources."
