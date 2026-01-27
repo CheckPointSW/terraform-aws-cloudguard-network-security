@@ -34,7 +34,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/cross_az_cluster_master"
-    version = "1.0.6"
+    version = "1.0.7"
 
     // --- VPC Network Configuration ---
     vpc_cidr = "10.0.0.0/16"

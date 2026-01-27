@@ -25,7 +25,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/gateway"
-    version = "1.0.6"
+    version = "1.0.7"
 
     // --- VPC Network Configuration ---
     vpc_id = "vpc-12345678"
