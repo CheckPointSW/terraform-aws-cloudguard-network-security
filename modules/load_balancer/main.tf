@@ -5,7 +5,7 @@ resource "random_id" "unique_lb_id" {
   byte_length = 8
 }
 resource "aws_lb" "load_balancer" {
-  name  = substr(format("%s-%s", "${var.prefix_name}-LB", random_id.unique_lb_id.hex), 0, 32)
+  name  = var.load_balancer_name != "" ? var.load_balancer_name : substr(format("%s-%s", "${var.prefix_name}-LB", random_id.unique_lb_id.hex), 0, 32)
   load_balancer_type = var.load_balancers_type == "gateway" ? "gateway" : var.load_balancers_type == "Network Load Balancer" ? "network": "application"
   internal = var.load_balancers_type == "gateway" ? "false" : var.internal
   subnets = var.instances_subnets
@@ -13,15 +13,21 @@ resource "aws_lb" "load_balancer" {
   tags = var.tags
   enable_cross_zone_load_balancing = var.cross_zone_load_balancing
   ip_address_type = var.ip_mode != "IPv4" ? "dualstack" : "ipv4"
+  enable_deletion_protection = var.enable_deletion_protection
 }
 resource "aws_lb_target_group" "lb_target_group" {
-  name  = substr(format("%s-%s", "${var.prefix_name}-TG", random_id.unique_lb_id.hex), 0, 32)
+  name  = var.target_group_name != "" ? var.target_group_name : substr(format("%s-%s", "${var.prefix_name}-TG", random_id.unique_lb_id.hex), 0, 32)
   vpc_id = var.vpc_id
   protocol = var.load_balancer_protocol
   port = var.target_group_port
+  deregistration_delay = var.deregistration_delay
+  tags = var.tags
   health_check {
     port     =  var.load_balancers_type != "gateway" ? var.health_check_port : 8117
     protocol =  var.load_balancers_type != "gateway" ? var.health_check_protocol : "TCP"
+    interval = var.health_check_interval
+    healthy_threshold   = var.healthy_threshold
+    unhealthy_threshold = var.unhealthy_threshold
   }
 }
 resource "aws_lb_listener" "lb_listener" {
@@ -31,6 +37,7 @@ resource "aws_lb_listener" "lb_listener" {
   protocol = var.load_balancers_type != "gateway" ? var.load_balancer_protocol : null
   port = var.load_balancers_type != "gateway" ? var.listener_port : null
   tcp_idle_timeout_seconds = var.tcp_idle_timeout > 0 ? var.tcp_idle_timeout : null
+  tags = var.tags
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.lb_target_group.arn
