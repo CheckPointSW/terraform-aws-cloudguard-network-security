@@ -12,6 +12,7 @@ module "common_permissive_sg" {
   vpc_id = var.vpc_id
   resources_tag_name = var.resources_tag_name
   gateway_name = var.standalone_name
+  ip_mode = var.ip_mode
 }
 
 resource "aws_iam_instance_profile" "standalone_instance_profile" {
@@ -49,6 +50,7 @@ resource "aws_network_interface" "public_eni" {
   security_groups = [module.common_permissive_sg.permissive_sg_id]
   description = "eth0"
   source_dest_check = false
+  ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name) }
 }
@@ -57,6 +59,7 @@ resource "aws_network_interface" "private_eni" {
   security_groups = [module.common_permissive_sg.permissive_sg_id]
   description = "eth1"
   source_dest_check = false
+  ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name) }
 }
@@ -64,9 +67,10 @@ resource "aws_network_interface" "private_eni" {
 module "common_eip" {
   source = "../elastic_ip"
 
-  allocate_and_associate_eip = var.allocate_and_associate_eip
+  allocate_and_associate_eip = var.allocate_and_associate_eip && local.ipv4_enabled
   external_eni_id = aws_network_interface.public_eni.id
   private_ip_address = aws_network_interface.public_eni.private_ip
+  ip_mode = var.ip_mode
 }
 
 module "common_internal_default_route" {
@@ -74,6 +78,7 @@ module "common_internal_default_route" {
 
   private_route_table = var.private_route_table
   internal_eni_id = aws_network_interface.private_eni.id
+  ip_mode = var.ip_mode
 }
 
 resource "aws_launch_template" "standalone_launch_template" {
@@ -123,6 +128,7 @@ resource "aws_instance" "standalone-instance" {
 
   user_data = templatefile("${path.module}/standalone_userdata.yaml", {
     // script's arguments
+    TemplateName = local.template_name,
     Hostname = var.standalone_hostname,
     PasswordHash = local.standalone_password_hash_base64,
     MaintenanceModePassword = local.maintenance_mode_password_hash_base64,
@@ -134,7 +140,7 @@ resource "aws_instance" "standalone-instance" {
     AdminSubnet = var.admin_cidr,
     EnableInstanceConnect = var.enable_instance_connect,
     StandaloneBootstrapScript = local.standalone_bootstrap_script64
-    AllocateElasticIP = var.allocate_and_associate_eip
+    AllocateElasticIP = var.allocate_and_associate_eip && local.ipv4_enabled,
     OsVersion = local.version_split
   })
 }

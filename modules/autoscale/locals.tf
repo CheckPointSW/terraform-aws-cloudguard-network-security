@@ -50,6 +50,9 @@ locals {
   gateway_password_hash_base64 = base64encode(var.gateway_password_hash)
   maintenance_mode_password_hash_base64 = base64encode(var.gateway_maintenance_mode_password_hash)
   gateway_SICkey_base64 = base64encode(var.gateway_SICKey)
+
+  // Diagnostics IPv6
+  template_name = "autoscale"
 }
 resource "null_resource" "tags_as_list_of_maps" {
   count = length(keys(var.instances_tags))

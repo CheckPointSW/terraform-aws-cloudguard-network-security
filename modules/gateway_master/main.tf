@@ -7,6 +7,7 @@ module "launch_vpc" {
   public_subnets_map = var.public_subnets_map
   private_subnets_map = var.private_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  ip_mode = var.ip_mode
 }
 
 resource "aws_route_table" "private_subnet_rtb" {
@@ -55,4 +56,5 @@ module "launch_gateway_into_vpc" {
   control_gateway_over_public_or_private_address = var.control_gateway_over_public_or_private_address
   management_server = var.management_server
   configuration_template = var.configuration_template
+  ip_mode = var.ip_mode
 }

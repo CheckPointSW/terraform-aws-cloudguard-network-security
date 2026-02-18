@@ -66,4 +66,7 @@ locals {
   mds_SICkey_base64 = base64encode(var.mds_SICKey)
   mds_password_hash_base64 =base64encode(var.mds_password_hash)
   maintenance_mode_password_hash_base64 = base64encode(var.mds_maintenance_mode_password_hash)
+
+  // Diagnostics IPv6
+  template_name = "mds"
 }

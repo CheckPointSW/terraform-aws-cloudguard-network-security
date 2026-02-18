@@ -43,7 +43,7 @@ variable "key_name" {
 }
 variable "allocate_and_associate_eip" {
   type = bool
-  description = "If set to true, an elastic IP will be allocated and associated with the launched instance"
+  description = "If set to true, an elastic IP will be allocated and associated with the launched instance (Irrelevant for IPv6 only mode)"
   default = true
 }
 variable "volume_size" {
@@ -149,12 +149,12 @@ variable "secondary_ntp" {
 }
 variable "admin_cidr" {
   type = string
-  description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Management Server"
+  description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Security Management Server (IPv4 or IPv6)"
   default = "0.0.0.0/0"
 }
 variable "gateway_addresses" {
   type = string
-  description = "(CIDR) Allow gateways only from this network to communicate with the Management Server"
+  description = "(CIDR) Allow gateways only from this network to communicate with the Security Management Server (IPv4 or IPv6)"
   default = "0.0.0.0/0"
 }
 variable "security_rules" {
@@ -167,4 +167,13 @@ variable "security_rules" {
     cidr_blocks = list(string)
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode for the Standalone and AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4 or DualStack."
+  }
 }

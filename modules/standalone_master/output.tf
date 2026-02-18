@@ -19,9 +19,18 @@ output "standalone_instance_name" {
 output "standalone_public_ip" {
   value = module.launch_standalone_into_vpc.standalone_public_ip
 }
+output "standalone_public_ipv6" {
+  value = module.launch_standalone_into_vpc.standalone_public_ipv6
+}
 output "standalone_ssh" {
   value = module.launch_standalone_into_vpc.standalone_ssh
 }
+output "standalone_ssh_ipv6" {
+  value = module.launch_standalone_into_vpc.standalone_ssh_ipv6
+}
 output "standalone_url" {
   value = module.launch_standalone_into_vpc.standalone_url
+}
+output "standalone_url_ipv6" {
+  value = module.launch_standalone_into_vpc.standalone_url_ipv6
 }

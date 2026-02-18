@@ -22,8 +22,14 @@ output "permissive_sg_name" {
 output "gateway_url" {
   value = module.launch_gateway_into_vpc.gateway_url
 }
+output "gateway_url_ipv6" {
+  value = module.launch_gateway_into_vpc.gateway_url_ipv6
+}
 output "gateway_public_ip" {
   value = module.launch_gateway_into_vpc.gateway_public_ip
+}
+output "gateway_public_ipv6" {
+  value = module.launch_gateway_into_vpc.gateway_public_ipv6
 }
 output "gateway_instance_id" {
   value = module.launch_gateway_into_vpc.gateway_instance_id

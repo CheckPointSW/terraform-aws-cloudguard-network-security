@@ -19,75 +19,87 @@ resource "aws_security_group" "management_sg" {
     from_port = 257
     to_port = 257
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18191
     to_port = 18191
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18192
     to_port = 18192
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18208
     to_port = 18208
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18210
     to_port = 18210
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18211
     to_port = 18211
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18221
     to_port = 18221
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
   ingress {
     from_port = 18264
     to_port = 18264
     protocol = "tcp"
-    cidr_blocks = [var.gateway_addresses]
+    cidr_blocks = local.gateway_ipv4_cidrs
+    ipv6_cidr_blocks = local.gateway_ipv6_cidrs
   }
 
   ingress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = [var.admin_cidr]
+    cidr_blocks = local.admin_ipv4_cidrs
+    ipv6_cidr_blocks = local.admin_ipv6_cidrs
   }
   ingress {
     from_port = 443
     to_port = 443
     protocol = "tcp"
-    cidr_blocks = [var.admin_cidr]
+    cidr_blocks = local.admin_ipv4_cidrs
+    ipv6_cidr_blocks = local.admin_ipv6_cidrs
   }
   ingress {
     from_port = 18190
     to_port = 18190
     protocol = "tcp"
-    cidr_blocks = [var.admin_cidr]
+    cidr_blocks = local.admin_ipv4_cidrs
+    ipv6_cidr_blocks = local.admin_ipv6_cidrs
   }
   
   ingress {
     from_port = 19009
     to_port = 19009
     protocol = "tcp"
-    cidr_blocks = [var.admin_cidr]
+    cidr_blocks = local.admin_ipv4_cidrs
+    ipv6_cidr_blocks = local.admin_ipv6_cidrs
   }
   
   dynamic "ingress" {
@@ -96,7 +108,8 @@ resource "aws_security_group" "management_sg" {
       from_port   = ingress.value.from_port
       to_port     = ingress.value.to_port
       protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if !strcontains(cidr, ":")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }
 
@@ -106,7 +119,8 @@ resource "aws_security_group" "management_sg" {
       from_port   = egress.value.from_port
       to_port     = egress.value.to_port
       protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in egress.value.cidr_blocks : cidr if !strcontains(cidr, ":")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in egress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }  
 
@@ -116,7 +130,8 @@ resource "aws_security_group" "management_sg" {
         from_port    = 0
         to_port      = 0
         protocol     = "-1"
-        cidr_blocks  = ["0.0.0.0/0"]
+        cidr_blocks  = local.ipv4_enabled ? ["0.0.0.0/0"] : []
+        ipv6_cidr_blocks  = local.ipv6_enabled ? ["::/0"] : []
     }
   }
 }
@@ -126,13 +141,14 @@ resource "aws_network_interface" "external-eni" {
   security_groups = [aws_security_group.management_sg.id]
   description = "eth0"
   source_dest_check = true
+  ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-network_interface", var.management_name)
   }
 }
 
 resource "aws_eip" "eip" {
-  count = var.allocate_and_associate_eip ? 1 : 0
+  count = var.allocate_and_associate_eip && local.ipv4_enabled ? 1 : 0
   network_interface = aws_network_interface.external-eni.id
 }
 
@@ -197,6 +213,7 @@ resource "aws_instance" "management-instance" {
 
   user_data = templatefile("${path.module}/management_userdata.yaml", {
     // script's arguments
+    TemplateName = local.template_name,
     Hostname = var.management_hostname,
     PasswordHash = local.management_password_hash_base64,
     MaintenanceModePassword = local.maintenance_mode_password_hash_base64,
@@ -209,7 +226,7 @@ resource "aws_instance" "management-instance" {
     SICKey = local.management_SICkey_base64,
     OsVersion = local.version_split
     EnableInstanceConnect = var.enable_instance_connect
-    AllocateElasticIP = var.allocate_and_associate_eip
+    AllocateElasticIP = var.allocate_and_associate_eip && local.ipv4_enabled
     GatewayManagement = var.gateway_management
     BootstrapScript = local.management_bootstrap_script64
     PubMgmt = local.pub_mgmt

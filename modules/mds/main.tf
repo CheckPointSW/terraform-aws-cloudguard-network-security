@@ -183,6 +183,7 @@ resource "aws_instance" "mds-instance" {
 
   user_data = templatefile("${path.module}/mds_userdata.yaml", {
     // script's arguments
+    TemplateName = local.template_name,
     Hostname = var.mds_hostname,
     PasswordHash = local.mds_password_hash_base64
     MaintenanceModePassword = local.maintenance_mode_password_hash_base64

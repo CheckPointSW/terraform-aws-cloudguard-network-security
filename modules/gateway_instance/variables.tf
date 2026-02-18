@@ -149,3 +149,12 @@ variable "metadata_imdsv2_required" {
   description = "Set true to deploy the instance with metadata v2 token required"
   default = true
 }
+variable "ip_mode" {
+  type = string
+  description = "IP mode of AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4 or DualStack."
+  }
+}

@@ -9,6 +9,10 @@ locals {
 
   enable_cloudwatch_policy = var.enable_cloudwatch ? 1 : 0
 
+  # IPv6 configuration helpers
+  ipv6_enabled = var.ip_mode != "IPv4"
+  ipv4_enabled = var.ip_mode != "IPv6"
+  
   regex_valid_key_name = "[\\S\\s]+[\\S]+"
   // will fail if var.key_name is invalid
   regex_key_name_result=regex(local.regex_valid_key_name, var.key_name) == var.key_name ? 0 : "Variable [key_name] must be a none empty string"

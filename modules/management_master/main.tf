@@ -2,13 +2,11 @@ module "launch_vpc" {
   source = "../vpc"
 
   vpc_cidr = var.vpc_cidr
-  public_subnets_map = {
-    (var.public_subnet_az) = 1
-  }
+  public_subnets_map = var.public_subnets_map
   private_subnets_map = {}
   subnets_bit_length = var.subnets_bit_length
+  ip_mode = var.ip_mode
 }
-
 
 module "launch_management_into_vpc" {
   source = "../management"
@@ -53,4 +51,5 @@ module "launch_management_into_vpc" {
   volume_type = var.volume_type
   is_gwlb_iam = var.is_gwlb_iam
   security_rules = var.security_rules
+  ip_mode = var.ip_mode
 }

@@ -47,6 +47,13 @@ locals {
   gateway_password_hash_base64 = base64encode(var.gateway_password_hash)
   maintenance_mode_password_hash_base64 = base64encode(var.gateway_maintenance_mode_password_hash)
 
+  // Diagnostics IPv6
+  template_name = join("", [
+    "autoscale_gwlb",
+    var.ip_mode == "DualStack" ? "_dual_stack" :
+    var.ip_mode == "IPv6"      ? "_ipv6" :
+    ""
+  ])
 }
 resource "null_resource" "tags_as_list_of_maps" {
   count = length(keys(var.instances_tags))

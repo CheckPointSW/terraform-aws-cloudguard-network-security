@@ -146,12 +146,12 @@ variable "gateway_management" {
 }
 variable "admin_cidr" {
   type = string
-  description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Security Management Server"
+  description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Security Management Server (IPv4 or IPv6)"
   default = "0.0.0.0/0"
 }
 variable "gateway_addresses" {
   type = string
-  description = "(CIDR) Allow gateways only from this network to communicate with the Security Management Server"
+  description = "(CIDR) Allow gateways only from this network to communicate with the Security Management Server (IPv4 or IPv6)"
   default = "0.0.0.0/0"
 }
 variable "primary_ntp" {
@@ -189,4 +189,13 @@ variable "security_rules" {
     
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode for the Security Management Server and AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4, DualStack."
+  }
 }

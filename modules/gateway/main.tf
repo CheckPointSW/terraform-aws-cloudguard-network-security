@@ -11,6 +11,7 @@ module "common_permissive_sg" {
   vpc_id = var.vpc_id
   resources_tag_name = var.resources_tag_name
   gateway_name = var.gateway_name
+  ip_mode = var.ip_mode
 }
 
 resource "aws_iam_instance_profile" "gateway_instance_profile" {
@@ -49,6 +50,7 @@ resource "aws_network_interface" "public_eni" {
   security_groups = [module.common_permissive_sg.permissive_sg_id]
   description = "eth0"
   source_dest_check = false
+  ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
 }
@@ -57,6 +59,7 @@ resource "aws_network_interface" "private_eni" {
   security_groups = [module.common_permissive_sg.permissive_sg_id]
   description = "eth1"
   source_dest_check = false
+  ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
 }
@@ -67,9 +70,10 @@ module "common_eip" {
     module.common_gateway_instance
   ]
 
-  allocate_and_associate_eip = var.allocate_and_associate_eip
+  allocate_and_associate_eip = var.allocate_and_associate_eip && local.ipv4_enabled
   external_eni_id = aws_network_interface.public_eni.id
   private_ip_address = aws_network_interface.public_eni.private_ip
+  ip_mode = var.ip_mode
 }
 
 module "common_internal_default_route" {
@@ -77,6 +81,7 @@ module "common_internal_default_route" {
 
   private_route_table = var.private_route_table
   internal_eni_id = aws_network_interface.private_eni.id
+  ip_mode = var.ip_mode
 }
 
 module "common_gateway_instance" {
@@ -110,4 +115,5 @@ module "common_gateway_instance" {
   enable_instance_connect = var.enable_instance_connect
   disable_instance_termination = var.disable_instance_termination
   metadata_imdsv2_required = var.metadata_imdsv2_required
+  ip_mode = var.ip_mode
 }
