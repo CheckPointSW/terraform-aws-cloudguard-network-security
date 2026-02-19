@@ -27,7 +27,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/autoscale"
-    version = "1.0.7"
+    version = "1.0.8"
 
     // --- Environment ---
     prefix = "env1"
