@@ -23,6 +23,7 @@ variable "asg_name" {
 // --- VPC Network Configuration ---
 variable "vpc_id" {
   type = string
+  description = "The ID of the VPC in which to deploy the resources. In the case of IPv6-only mode, ensure that the VPC is configured as DualStack."
 }
 variable "subnet_ids" {
   type = list(string)
@@ -165,23 +166,6 @@ variable "gateway_bootstrap_script" {
   description = "(Optional) Semicolon (;) separated commands to run on the initial boot"
   default = ""
 }
-
-// --- (Optional) Outbound Proxy Configuration ---
-variable "proxy_elb_type" {
-  type = string
-  description = "Type of ELB to create as an HTTP/HTTPS outbound proxy"
-  default = "none"
-}
-variable "proxy_elb_port" {
-  type = number
-  description = "The TCP port on which the proxy will be listening"
-  default = 8080
-}
-variable "proxy_elb_clients" {
-  type = string
-  description = "The CIDR range of the clients of the proxy"
-  default = "0.0.0.0/0"
-}
 variable "security_rules" {
   description = "List of security rules for ingress and egress"
   type        = list(object({
@@ -192,4 +176,13 @@ variable "security_rules" {
     cidr_blocks = list(string)
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode of AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4 or DualStack."
+  }
 }

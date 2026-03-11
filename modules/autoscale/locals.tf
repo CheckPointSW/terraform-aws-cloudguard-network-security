@@ -26,21 +26,13 @@ locals {
   regex_gateway_password_hash = regex(local.regex_valid_gateway_password_hash, var.gateway_password_hash) == var.gateway_password_hash ? 0 : "Variable [gateway_password_hash] must be a valid password hash"
   regex_gateway_maintenance_mode_password_hash = regex(local.regex_valid_gateway_password_hash, var.gateway_maintenance_mode_password_hash) == var.gateway_maintenance_mode_password_hash ? 0 : "Variable [gateway_maintenance_mode_password_hash] must be a valid password hash"
 
+  # IPv6 configuration helpers
+  ipv6_enabled = var.ip_mode != "IPv4"
+  ipv4_enabled = var.ip_mode != "IPv6"
+
   regex_valid_sic_key = "^[a-zA-Z0-9]{8,}$"
   // Will fail if var.gateway_SICKey is invalid
   regex_sic_result = regex(local.regex_valid_sic_key, var.gateway_SICKey) == var.gateway_SICKey ? 0 : "Variable [gateway_SICKey] must be at least 8 alphanumeric characters"
-
-  proxy_elb_type_allowed_values = [
-    "none",
-    "internal",
-    "internet-facing"
-  ]
-  // Will fail if var.proxy_elb_type is invalid
-  validate_proxy_elb_type = index(local.proxy_elb_type_allowed_values, var.proxy_elb_type)
-
-  regex_valid_cidr_range = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(/(3[0-2]|2[0-9]|1[0-9]|[0-9]))?$"
-  // Will fail if var.proxy_elb_clients is invalid
-  regex_cidr_result = regex(local.regex_valid_cidr_range, var.proxy_elb_clients) == var.proxy_elb_clients ? 0 : "Variable [proxy_elb_clients] must be a valid CIDR range"
 
   tags_asg_format = null_resource.tags_as_list_of_maps.*.triggers
 
@@ -52,7 +44,12 @@ locals {
   gateway_SICkey_base64 = base64encode(var.gateway_SICKey)
 
   // Diagnostics IPv6
-  template_name = "autoscale"
+  template_name = join("", [
+    "autoscale",
+    var.ip_mode == "DualStack" ? "_dual_stack" :
+    var.ip_mode == "IPv6"      ? "_ipv6" :
+    ""
+  ])
 }
 resource "null_resource" "tags_as_list_of_maps" {
   count = length(keys(var.instances_tags))

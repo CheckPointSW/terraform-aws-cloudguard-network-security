@@ -5,6 +5,7 @@ module "launch_vpc" {
   public_subnets_map = var.public_subnets_map
   private_subnets_map = var.private_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  ip_mode = var.ip_mode
 }
 
 module "launch_autoscale_into_vpc" {
@@ -45,11 +46,7 @@ module "launch_autoscale_into_vpc" {
   configuration_template = var.configuration_template
   gateways_provision_address_type = var.gateways_provision_address_type
 
-  // --- Proxy ELB Configuration ---
-  proxy_elb_type = var.proxy_elb_type
-  proxy_elb_port = var.proxy_elb_port
-  proxy_elb_clients = var.proxy_elb_clients
-
   // --- Security Rules ---
   security_rules = var.security_rules
+  ip_mode = var.ip_mode
 }
