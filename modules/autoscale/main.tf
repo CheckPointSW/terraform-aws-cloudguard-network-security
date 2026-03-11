@@ -15,7 +15,8 @@ resource "aws_security_group" "permissive_sg" {
       from_port   = ingress.value.from_port
       to_port     = ingress.value.to_port
       protocol    = ingress.value.protocol
-      cidr_blocks = ingress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if strcontains(cidr, ".")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in ingress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }
 
@@ -25,7 +26,8 @@ resource "aws_security_group" "permissive_sg" {
         from_port    = 0
         to_port      = 0
         protocol     = "-1"
-        cidr_blocks  = ["0.0.0.0/0"]
+        cidr_blocks  = local.ipv4_enabled ? ["0.0.0.0/0"] : []
+        ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
 
@@ -35,7 +37,8 @@ resource "aws_security_group" "permissive_sg" {
       from_port   = egress.value.from_port
       to_port     = egress.value.to_port
       protocol    = egress.value.protocol
-      cidr_blocks = egress.value.cidr_blocks
+      cidr_blocks =  local.ipv4_enabled ? [for cidr in egress.value.cidr_blocks : cidr if strcontains(cidr, ".")] : []
+      ipv6_cidr_blocks = local.ipv6_enabled ? [for cidr in egress.value.cidr_blocks : cidr if strcontains(cidr, ":")] : []
     }
   }
 
@@ -45,7 +48,8 @@ resource "aws_security_group" "permissive_sg" {
         from_port    = 0
         to_port      = 0
         protocol     = "-1"
-        cidr_blocks  = ["0.0.0.0/0"]
+        cidr_blocks  = local.ipv4_enabled ? ["0.0.0.0/0"] : []
+        ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
   tags = {
@@ -59,7 +63,8 @@ resource "aws_launch_template" "asg_launch_template" {
   instance_type = var.gateway_instance_type
   key_name = var.key_name
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = local.ipv4_enabled
+    ipv6_address_count = local.ipv6_enabled ? 1 : 0
     security_groups = [aws_security_group.permissive_sg.id]
   }
 
@@ -107,7 +112,7 @@ resource "aws_autoscaling_group" "asg" {
   }
   min_size = var.minimum_group_size
   max_size = var.maximum_group_size
-  load_balancers = aws_elb.proxy_elb.*.name
+  load_balancers = []
   target_group_arns = var.target_groups
   vpc_zone_identifier = var.subnet_ids
   health_check_grace_period = 3600
@@ -165,63 +170,6 @@ resource "aws_iam_instance_profile" "instance_profile" {
   name_prefix = format("%s-iam_instance_profile", local.asg_name)
   path = "/"
   role = aws_iam_role.role[count.index].name
-}
-
-// Proxy ELB
-locals {
-  proxy_elb_condition = var.proxy_elb_type != "none" ? 1 : 0
-}
-resource "random_id" "proxy_elb_uuid" {
-  byte_length = 5
-}
-resource "aws_elb" "proxy_elb" {
-  count = local.proxy_elb_condition
-  name = format("%s-proxy-elb-%s", var.prefix, random_id.proxy_elb_uuid.hex)
-  internal = var.proxy_elb_type == "internal"
-  cross_zone_load_balancing = true
-  listener {
-    instance_port = var.proxy_elb_port
-    instance_protocol = "TCP"
-    lb_port = var.proxy_elb_port
-    lb_protocol = "TCP"
-  }
-  health_check {
-    target = format("TCP:%s", var.proxy_elb_port)
-    healthy_threshold = 3
-    unhealthy_threshold = 5
-    interval = 30
-    timeout = 5
-  }
-  subnets = var.subnet_ids
-  security_groups = [aws_security_group.elb_security_group[count.index].id]
-}
-resource "aws_load_balancer_policy" "proxy_elb_policy" {
-  count = local.proxy_elb_condition
-  load_balancer_name = aws_elb.proxy_elb[count.index].name
-  policy_name = "EnableProxyProtocol"
-  policy_type_name = "ProxyProtocolPolicyType"
-
-  policy_attribute {
-    name = "ProxyProtocol"
-    value = "true"
-  }
-}
-resource "aws_security_group" "elb_security_group" {
-  count = local.proxy_elb_condition
-  description = "ELB security group"
-  vpc_id = var.vpc_id
-  egress {
-    from_port    = 0
-    to_port      = 0
-    protocol = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    protocol = "tcp"
-    cidr_blocks = [var.proxy_elb_clients]
-    from_port = var.proxy_elb_port
-    to_port = var.proxy_elb_port
-  }
 }
 
 // Scaling metrics

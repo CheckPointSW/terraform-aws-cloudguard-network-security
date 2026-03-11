@@ -33,7 +33,6 @@ variable "public_subnets_map" {
 variable "private_subnets_map" {
   type = map(string)
   description = "A map of pairs {availability-zone = subnet-suffix-number}. Each entry creates a subnet. Minimum 2 pairs.  (e.g. {\"us-east-1a\" = 2} ) "
-
 }
 variable "subnets_bit_length" {
   type = number
@@ -176,23 +175,6 @@ variable "gateway_bootstrap_script" {
   description = "(Optional) Semicolon (;) separated commands to run on the initial boot"
   default = ""
 }
-
-// --- (Optional) Outbound Proxy Configuration ---
-variable "proxy_elb_type" {
-  type = string
-  description = "Type of ELB to create as an HTTP/HTTPS outbound proxy"
-  default = "none"
-}
-variable "proxy_elb_port" {
-  type = number
-  description = "The TCP port on which the proxy will be listening"
-  default = 8080
-}
-variable "proxy_elb_clients" {
-  type = string
-  description = "The CIDR range of the clients of the proxy"
-  default = "0.0.0.0/0"
-}
 variable "security_rules" {
   description = "List of security rules for ingress and egress"
   type        = list(object({
@@ -203,4 +185,13 @@ variable "security_rules" {
     cidr_blocks = list(string)
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode of AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4 or DualStack."
+  }
 }
