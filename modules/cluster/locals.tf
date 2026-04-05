@@ -1,4 +1,11 @@
 locals {
+  // Local Zone detection: Local zones have zone_type = "local-zone"
+  // Regular zones have zone_type = "availability-zone"
+  is_local_zone = data.aws_availability_zone.subnet_az.zone_type == "local-zone"
+  
+  // Network Border Group for EIP allocation (needed for Local Zones)
+  network_border_group = data.aws_availability_zone.subnet_az.network_border_group
+
   admin_shell_allowed_values = [
     "/etc/cli.sh",
     "/bin/bash",

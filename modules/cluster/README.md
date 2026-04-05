@@ -85,6 +85,14 @@ module "example_module" {
   private_route_table = "rtb-12345678"
   ```
 
+### Local Zone Support
+
+This module supports deployment into AWS Local Zones (for example, `ap-southeast-2-per-1a`).
+
+- Set `public_subnet_id` and `private_subnet_id` to subnets in the same Local Zone.
+- Keep `allocate_and_associate_eip = true` if you require public cluster/member addresses.
+- For Local Zones, the module automatically allocates EIPs in the subnet's `network_border_group`, so EIP association succeeds.
+
   ### Optional re-deploy of cluster member:
   In case of re-deploying one cluster member, make sure that it's in STANDBY state, and the second member is the ACTIVE one.
   Follow the commands below in order to re-deploy (replace MEMBER with a or b):

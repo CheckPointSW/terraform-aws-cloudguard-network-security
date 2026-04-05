@@ -84,6 +84,14 @@ module "example_module" {
   private_route_table = "rtb-12345678"
   ```
 
+### Local Zone Support
+
+This module supports deployment into AWS Local Zones (for example, `ap-southeast-2-per-1a`).
+
+- Set `public_subnet_id` and `private_subnet_id` to subnets in the same Local Zone.
+- Keep `allocate_and_associate_eip = true` to get a public gateway address.
+- For Local Zones, the module automatically uses the subnet's `network_border_group` for EIP allocation, preventing cross-border-group EIP association failures.
+
 ## Inputs
 
 | Name                                           | Description                                                                                                             | Type        | Allowed values                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |

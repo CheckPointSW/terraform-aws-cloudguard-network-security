@@ -5,6 +5,16 @@ module "amis" {
   chkp_type = "gateway"
 }
 
+data "aws_subnet" "public_subnet" {
+  id = var.public_subnet_id
+}
+
+data "aws_availability_zone" "subnet_az" {
+  name = data.aws_subnet.public_subnet.availability_zone
+}
+
+data "aws_region" "current" {}
+
 module "common_permissive_sg" {
   source = "../permissive_sg"
   security_rules = var.security_rules
@@ -74,6 +84,7 @@ module "common_eip" {
   external_eni_id = aws_network_interface.public_eni.id
   private_ip_address = aws_network_interface.public_eni.private_ip
   ip_mode = var.ip_mode
+  network_border_group = local.is_local_zone ? local.network_border_group : ""
 }
 
 module "common_internal_default_route" {

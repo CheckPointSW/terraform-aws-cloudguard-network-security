@@ -1,6 +1,18 @@
 output "ami_id" {
   value = module.amis.ami_id
 }
+output "availability_zone" {
+  value = data.aws_subnet.public_subnet.availability_zone
+}
+output "region" {
+  value = data.aws_region.current.name
+}
+output "zone_type" {
+  value = coalesce(try(data.aws_availability_zone.subnet_az.zone_type, null), "availability-zone")
+}
+output "network_border_group" {
+  value = coalesce(try(data.aws_availability_zone.subnet_az.network_border_group, null), data.aws_region.current.name)
+}
 output "permissive_sg_id" {
   value = module.common_permissive_sg.permissive_sg_id
 }

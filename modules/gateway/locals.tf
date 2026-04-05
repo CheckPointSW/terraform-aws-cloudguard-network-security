@@ -1,4 +1,7 @@
 locals {
+  is_local_zone = data.aws_availability_zone.subnet_az.zone_type == "local-zone"
+  network_border_group = data.aws_availability_zone.subnet_az.network_border_group
+
   admin_shell_allowed_values = [
     "/etc/cli.sh",
     "/bin/bash",
