@@ -13,6 +13,18 @@ output "vpc_private_subnets_ids_list" {
 output "ami_id" {
   value = module.launch_gateway_into_vpc.ami_id
 }
+output "availability_zone" {
+  value = module.launch_gateway_into_vpc.availability_zone
+  description = "The availability zone where the gateway is deployed"
+}
+output "zone_type" {
+  value = module.launch_gateway_into_vpc.zone_type
+  description = "The type of zone (availability-zone or local-zone)"
+}
+output "network_border_group" {
+  value = module.launch_gateway_into_vpc.network_border_group
+  description = "The network border group for the zone"
+}
 output "permissive_sg_id" {
   value = module.launch_gateway_into_vpc.permissive_sg_id
 }

@@ -43,7 +43,7 @@ variable "key_name" {
 }
 variable "allocate_and_associate_eip" {
   type = bool
-  description = "If set to true, an elastic IP will be allocated and associated with each cluster member, in addition to the shared cluster Elastic IP"
+  description = "Allocate Elastic IPs for cluster members and the shared cluster IP. When false, no public IP addresses will be allocated"
   default = true
 }
 variable "volume_size" {

@@ -1,5 +1,16 @@
 
 
+// --- Local Zone Detection ---
+data "aws_subnet" "public_subnet" {
+  id = var.public_subnet_id
+}
+
+data "aws_availability_zone" "subnet_az" {
+  name = data.aws_subnet.public_subnet.availability_zone
+}
+
+data "aws_region" "current" {}
+
 module "amis" {
   source = "../amis"
 
@@ -158,7 +169,7 @@ resource "aws_instance" "member-a-instance" {
     x-chkp-member-ips = format("public-ip=%s:external-private-ip=%s:internal-private-ip=%s",
       var.allocate_and_associate_eip ? aws_eip.member_a_eip[0].public_ip : "", aws_network_interface.member_a_external_eni.private_ip,aws_network_interface.member_a_internal_eni.private_ip),
     x-chkp-cluster-ips = format("cluster-ip=%s:cluster-eth0-private-ip=%s:cluster-eth1-private-ip=%s",
-      aws_eip.cluster_eip.public_ip, element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
+      var.allocate_and_associate_eip ? aws_eip.cluster_eip[0].public_ip : "", element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
       element(tolist(setsubtract(tolist(aws_network_interface.member_a_internal_eni.private_ips), [aws_network_interface.member_a_internal_eni.private_ip])), 0))
   }, var.instance_tags)
 
@@ -212,7 +223,7 @@ resource "aws_instance" "member-b-instance" {
     x-chkp-member-ips = format("public-ip=%s:external-private-ip=%s:internal-private-ip=%s",
       var.allocate_and_associate_eip ? aws_eip.member_b_eip[0].public_ip : "", aws_network_interface.member_b_external_eni.private_ip,aws_network_interface.member_b_internal_eni.private_ip),
     x-chkp-cluster-ips = format("cluster-ip=%s:cluster-eth0-private-ip=%s:cluster-eth1-private-ip=%s",
-      aws_eip.cluster_eip.public_ip, element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
+      var.allocate_and_associate_eip ? aws_eip.cluster_eip[0].public_ip : "", element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
       element(tolist(setsubtract(tolist(aws_network_interface.member_a_internal_eni.private_ips), [aws_network_interface.member_a_internal_eni.private_ip])), 0))
   }, var.instance_tags)
 
@@ -249,19 +260,33 @@ resource "aws_instance" "member-b-instance" {
 }
 
 resource "aws_eip" "cluster_eip" {
+  count = var.allocate_and_associate_eip ? 1 : 0
+  domain = "vpc"
+  
+  # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
+  network_border_group = local.is_local_zone ? local.network_border_group : null
 }
 
 resource "aws_eip" "member_a_eip" {
   count = var.allocate_and_associate_eip ? 1 : 0
+  domain = "vpc"
+  
+  # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
+  network_border_group = local.is_local_zone ? local.network_border_group : null
 }
 
 resource "aws_eip" "member_b_eip" {
   count = var.allocate_and_associate_eip ? 1 : 0
+  domain = "vpc"
+  
+  # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
+  network_border_group = local.is_local_zone ? local.network_border_group : null
 }
 
 resource "aws_eip_association" "cluster_address_assoc" {
   depends_on = [aws_instance.member-a-instance]
-  allocation_id = aws_eip.cluster_eip.id
+  count = var.allocate_and_associate_eip ? 1 : 0
+  allocation_id = aws_eip.cluster_eip[0].id
   lifecycle {
     ignore_changes = [
       network_interface_id, private_ip_address

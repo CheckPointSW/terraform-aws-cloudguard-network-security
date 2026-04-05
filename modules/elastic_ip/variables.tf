@@ -20,3 +20,9 @@ variable "ip_mode" {
     error_message = "The ip_mode value must be one of: IPv4, DualStack, or IPv6."
   }
 }
+
+variable "network_border_group" {
+  type = string
+  description = "Optional network border group for EIP allocation (required for Local Zones)."
+  default = ""
+}
