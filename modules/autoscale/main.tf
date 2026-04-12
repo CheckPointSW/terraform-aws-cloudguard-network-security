@@ -70,6 +70,7 @@ resource "aws_launch_template" "asg_launch_template" {
 
   metadata_options {
     http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
+    http_protocol_ipv6 = local.ipv6_enabled ? "enabled" : "disabled"
   }
 
   iam_instance_profile {

@@ -20,6 +20,7 @@ resource "aws_launch_template" "gateway_launch_template" {
 
   metadata_options {
     http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
+    http_protocol_ipv6 = local.ipv6_enabled ? "enabled" : "disabled"
   }
 }
 
@@ -42,6 +43,11 @@ resource "aws_instance" "gateway_instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition ? true : false
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+  }
+
+  metadata_options {
+    http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
+    http_protocol_ipv6 = local.ipv6_enabled ? "enabled" : "disabled"
   }
 
   user_data = templatefile("${path.module}/gateway_userdata.yaml", {
