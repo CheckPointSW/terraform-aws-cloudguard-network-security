@@ -153,7 +153,6 @@ variable "gateway_management" {
 variable "admin_cidr" {
   type = string
   description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Security Management Server"
-  default = "0.0.0.0/0"
 }
 variable "gateway_addresses" {
   type = string

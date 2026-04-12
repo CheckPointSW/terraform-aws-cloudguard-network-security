@@ -137,7 +137,6 @@ variable "mds_installation_type" {
 variable "admin_cidr" {
   type = string
   description = "(CIDR) Allow web, ssh, and graphical clients only from this network to communicate with the Multi-Domain Server"
-  default = "0.0.0.0/0"
 }
 variable "gateway_addresses" {
   type = string
