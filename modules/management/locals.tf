@@ -13,8 +13,8 @@ locals {
   pre_role = (local.use_role == 1 && local.create_iam_role == false) ? 1 : 0
   new_instance_profile = (local.create_iam_role == true && local.use_role == 1) ? 1 : 0
 
-  new_instance_profile_general = local.new_instance_profile == 1 && var.is_gwlb_iam == false ? 1 : 0
-  new_instance_profile_gwlb = local.new_instance_profile == 1 && var.is_gwlb_iam ? 1 : 0
+  new_instance_profile_general = local.new_instance_profile == 1 && var.is_gwlb == false ? 1 : 0
+  new_instance_profile_gwlb = local.new_instance_profile == 1 && var.is_gwlb ? 1 : 0
 
   admin_shell_allowed_values = [
     "/etc/cli.sh",
@@ -87,7 +87,7 @@ locals {
 
   // Diagnostics IPv6
   template_name = join("", [
-    "management",
+    var.is_gwlb ? "management_gwlb" : "management",
     var.ip_mode == "DualStack" ? "_dual_stack" :
     var.ip_mode == "IPv6"      ? "_ipv6" :
     ""
