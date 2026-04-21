@@ -49,7 +49,7 @@ module "launch_management_into_vpc" {
   secondary_ntp = var.secondary_ntp
   management_bootstrap_script = var.management_bootstrap_script
   volume_type = var.volume_type
-  is_gwlb_iam = var.is_gwlb_iam
+  is_gwlb = var.is_gwlb
   security_rules = var.security_rules
   ip_mode = var.ip_mode
 }

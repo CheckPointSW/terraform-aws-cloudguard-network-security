@@ -173,7 +173,7 @@ variable "volume_type" {
   description = "General Purpose SSD Volume Type"
   default = "gp3"
 }
-variable "is_gwlb_iam" {
+variable "is_gwlb" {
   type = bool
   default = false
 }
