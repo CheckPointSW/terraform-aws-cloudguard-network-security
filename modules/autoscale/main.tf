@@ -5,6 +5,7 @@ module "amis" {
 }
 
 resource "aws_security_group" "permissive_sg" {
+  count       = var.existing_security_group_id == "" ? 1 : 0
   name_prefix = format("%s_PermissiveSecurityGroup", local.asg_name)
   description = "Permissive security group"
   vpc_id = var.vpc_id
@@ -65,7 +66,7 @@ resource "aws_launch_template" "asg_launch_template" {
   network_interfaces {
     associate_public_ip_address = local.ipv4_enabled
     ipv6_address_count = local.ipv6_enabled ? 1 : 0
-    security_groups = [aws_security_group.permissive_sg.id]
+    security_groups = [var.existing_security_group_id == "" ? aws_security_group.permissive_sg[0].id : var.existing_security_group_id]
   }
 
   metadata_options {

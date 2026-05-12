@@ -23,6 +23,7 @@ module "autoscale" {
   gateways_provision_address_type = var.control_gateway_over_public_or_private_address
   management_server =  var.management_server
   configuration_template = var.configuration_template
+  existing_security_group_id = var.existing_security_group_id
 }
 
 data "aws_region" "current"{}

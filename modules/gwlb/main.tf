@@ -63,6 +63,7 @@ module "autoscale_gwlb" {
   configuration_template = var.configuration_template
   volume_type = var.volume_type
   ip_mode = var.ip_mode
+  existing_security_group_id = var.existing_security_group_id
 }
 
 data "aws_region" "current"{}

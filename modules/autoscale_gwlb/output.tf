@@ -32,7 +32,7 @@ output "autoscale_launch_template_id" {
 }
 
 output "autoscale_security_group_id" {
-  value = aws_security_group.permissive_sg.id
+  value = var.existing_security_group_id == "" ? aws_security_group.permissive_sg[0].id : var.existing_security_group_id
 }
 
 output "autoscale_iam_role_name" {

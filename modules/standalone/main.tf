@@ -6,8 +6,9 @@ module "amis" {
 }
 
 module "common_permissive_sg" {
+  count = var.existing_security_group_id == "" ? 1 : 0
   source = "../permissive_sg"
-  
+
   security_rules = var.security_rules
   vpc_id = var.vpc_id
   resources_tag_name = var.resources_tag_name
@@ -47,7 +48,7 @@ module "attach_cloudwatch_policy" {
 }
 resource "aws_network_interface" "public_eni" {
   subnet_id = var.public_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "eth0"
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
@@ -56,7 +57,7 @@ resource "aws_network_interface" "public_eni" {
 }
 resource "aws_network_interface" "private_eni" {
   subnet_id = var.private_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "eth1"
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0

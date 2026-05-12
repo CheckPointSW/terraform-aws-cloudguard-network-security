@@ -319,4 +319,13 @@ variable "gateways_addresses" {
   type = string
   description = "Allow gateways only from this network to communicate with the Security Management Server"
 }
+variable "existing_security_group_id" {
+  type = string
+  description = "(Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created"
+  default = ""
+  validation {
+    condition     = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id))
+    error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
+  }
+}
 
