@@ -70,6 +70,7 @@ module "example_module" {
     gateway_bootstrap_script = "echo 'this is bootstrap script' > /home/admin/bootstrap.txt"
     primary_ntp = ""
     secondary_ntp = ""
+    existing_security_group_id = ""
 }
   ```
 
@@ -125,6 +126,7 @@ module "example_module" {
 | secondary_ntp                          | (Optional) The IPv4 addresses of Network Time Protocol secondary server                                                                                     | string       | **Default:** 0.pool.ntp.org                                                                                |
 | gateway_maintenance_mode_password_hash | (Optional) Check Point recommends setting Admin user's password and maintenance-mode password.                                                              | string       |                                                                                                                  |
  security_rules | List of security rules for ingress and egress.                                                         | list(object({<br/>    direction   = string    <br/>from_port   = any    <br/>to_port     = any <br/>protocol    = any <br/>cidr_blocks = list(any)<br/>}))         | **Default:** []|
+| existing_security_group_id             | (Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created | string       | **Default:** ""                                                                                                  |
 
 
 

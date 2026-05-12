@@ -267,6 +267,7 @@ module "gwlb" {
   gateways_addresses = var.gateways_addresses
 
   volume_type = var.volume_type
+  existing_security_group_id = var.existing_security_group_id
 }
 
 resource "aws_vpc_endpoint" "gwlb_endpoint1" {

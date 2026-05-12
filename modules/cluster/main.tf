@@ -19,6 +19,7 @@ module "amis" {
 }
 
 module "common_permissive_sg" {
+  count = var.existing_security_group_id == "" ? 1 : 0
   source = "../permissive_sg"
   security_rules = var.security_rules
   vpc_id = var.vpc_id
@@ -45,7 +46,7 @@ module "attach_cloudwatch_policy" {
 
 resource "aws_network_interface" "member_a_external_eni" {
   subnet_id = var.public_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "Member A external"
   source_dest_check = false
   lifecycle {
@@ -58,7 +59,7 @@ resource "aws_network_interface" "member_a_external_eni" {
 
 resource "aws_network_interface" "member_b_external_eni" {
   subnet_id = var.public_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "Member B external"
   source_dest_check = false
   tags = {
@@ -67,7 +68,7 @@ resource "aws_network_interface" "member_b_external_eni" {
 
 resource "aws_network_interface" "member_a_internal_eni" {
   subnet_id = var.private_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "Member A internal"
   source_dest_check = false
   lifecycle {
@@ -80,7 +81,7 @@ resource "aws_network_interface" "member_a_internal_eni" {
 
 resource "aws_network_interface" "member_b_internal_eni" {
   subnet_id = var.private_subnet_id
-  security_groups = [module.common_permissive_sg.permissive_sg_id]
+  security_groups = [var.existing_security_group_id == "" ? module.common_permissive_sg[0].permissive_sg_id : var.existing_security_group_id]
   description = "Member B internal"
   source_dest_check = false
   tags = {

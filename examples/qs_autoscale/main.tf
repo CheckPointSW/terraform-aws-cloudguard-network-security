@@ -82,6 +82,7 @@ module "autoscale" {
   gateway_bootstrap_script = "echo -e '\nStarting Bootstrap script\n'; echo 'Adding quickstart identifier to cloud-version'; cv_path='/etc/cloud-version'\n if test -f \"$cv_path\"; then sed -i '/template_name/c\\template_name: autoscale_qs' /etc/cloud-version; fi; cv_json_path='/etc/cloud-version.json'\n cv_json_path_tmp='/etc/cloud-version-tmp.json'\n if test -f \"$cv_json_path\"; then cat \"$cv_json_path\" | jq '.template_name = \"'\"autoscale_qs\"'\"' > \"$cv_json_path_tmp\"; mv \"$cv_json_path_tmp\" \"$cv_json_path\"; fi; echo -e '\nFinished Bootstrap script\n'"
   management_server = "${var.provision_tag}-management"
   configuration_template = "${var.provision_tag}-template"
+  existing_security_group_id = var.existing_security_group_id
 }
 
 data "aws_region" "current"{}

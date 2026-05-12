@@ -31,6 +31,7 @@ module "cluster_into_vpc" {
   primary_ntp = var.primary_ntp
   secondary_ntp = var.secondary_ntp
   volume_type = var.volume_type
+  existing_security_group_id = var.existing_security_group_id
 }
 resource "aws_route_table" "tgw_route_table" {
   vpc_id = var.vpc_id
