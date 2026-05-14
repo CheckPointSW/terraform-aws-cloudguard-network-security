@@ -1,0 +1,19 @@
+echo -e '\nStarting Bootstrap script\n'
+echo 'Adding tgw identifier to cloud-version'
+cv_path='/etc/cloud-version'
+if test -f "$cv_path"; then sed -i '/template_name/c\template_name: management_tgw_asg' /etc/cloud-version; fi
+cv_json_path='/etc/cloud-version.json'
+cv_json_path_tmp='/etc/cloud-version-tmp.json'
+if test -f "$cv_json_path"; then cat "$cv_json_path" | jq '.template_name = "management_tgw_asg"' > "$cv_json_path_tmp"; mv "$cv_json_path_tmp" "$cv_json_path"; fi
+echo 'Configuring VPN community: tgw-community'
+[[ -d /opt/CPcme/menu/additions ]] && /opt/CPcme/menu/additions/config-community.sh "tgw-community" || /etc/fw/scripts/autoprovision/config-community.sh "tgw-community"
+echo 'Setting VPN rules'
+mgmt_cli -r true add access-layer name 'Inline'
+mgmt_cli -r true add access-rule layer Network position 1 name 'tgw-community VPN Traffic Rule' vpn.directional.1.from 'tgw-community' vpn.directional.1.to 'tgw-community' vpn.directional.2.from 'tgw-community' vpn.directional.2.to External_clear action 'Apply Layer' inline-layer 'Inline'
+mgmt_cli -r true add nat-rule package standard position bottom install-on 'Policy Targets' original-source All_Internet translated-source All_Internet method hide
+echo 'Creating CME configuration'
+autoprov_cfg -f init AWS -mn ${ManagementServer} -tn ${ConfigurationTemplate} -cn tgw-controller -po Standard -otp ${SICKey} -r ${Region} -ver ${GatewayVersion} -iam -dt TGW
+autoprov_cfg -f set controller AWS -cn tgw-controller -sv -com tgw-community -ct ${ConfigurationTemplate}
+autoprov_cfg -f set template -tn ${ConfigurationTemplate} -vpn -vd '' -con tgw-community
+${GatewaysBlades} && autoprov_cfg -f set template -tn ${ConfigurationTemplate} -ia -ips -appi -av -ab
+echo -e '\nFinished Bootstrap script\n'

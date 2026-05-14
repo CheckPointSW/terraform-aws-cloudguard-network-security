@@ -90,7 +90,14 @@ module "management" {
   admin_shell = var.admin_shell
   gateway_addresses = var.gateways_addresses
   gateway_management = var.gateway_management
-  management_bootstrap_script = "autoprov_cfg -f init AWS -mn ${var.management_server} -tn ${var.configuration_template} -cn gwlb-controller -po ${var.gateways_policy} -otp ${var.gateway_SICKey} -r ${data.aws_region.current.name} -ver ${split("-", var.gateway_version)[0]} -iam; echo -e '\nFinished Bootstrap script\n'"
+  management_bootstrap_script = templatefile("${path.module}/gwlb_mgmt_bootstrap.tftpl", {
+    ManagementServer      = var.management_server
+    ConfigurationTemplate = var.configuration_template
+    GatewaysPolicy        = var.gateways_policy
+    SICKey                = var.gateway_SICKey
+    Region                = data.aws_region.current.name
+    GatewayVersion        = split("-", var.gateway_version)[0]
+  })
   volume_type = var.volume_type
   is_gwlb = true
 }
