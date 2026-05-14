@@ -1,0 +1,3 @@
+autoprov_cfg -f init AWS -mn ${ManagementServer} -tn ${ConfigurationTemplate} -cn gwlb-controller -po ${GatewaysPolicy} -otp ${SICKey} -r ${Region} -ver ${GatewayVersion} -iam
+autoprov_cfg -f set controller AWS -cn gwlb-controller -ct ${ConfigurationTemplate}
+echo -e '\nFinished Bootstrap script\n'
