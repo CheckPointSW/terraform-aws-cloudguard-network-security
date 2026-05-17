@@ -21,6 +21,8 @@ module "launch_qs_autoscale" {
   enable_instance_connect = var.enable_instance_connect
   disable_instance_termination = var.disable_instance_termination
   metadata_imdsv2_required = var.metadata_imdsv2_required
+  servers_metadata_imdsv2_required = var.servers_metadata_imdsv2_required
+  servers_enable_volume_encryption = var.servers_enable_volume_encryption
   allow_upload_download = var.allow_upload_download
   provision_tag = var.provision_tag
   load_balancers_type = var.load_balancers_type

@@ -173,4 +173,6 @@ module "custom_autoscale" {
   servers_target_groups = module.internal_load_balancer[0].target_group_id
   deploy_internal_security_group = local.nlb_condition ? true : false
   source_security_group = local.nlb_condition ? "" : aws_security_group.internal_security_group[0].id
+  metadata_imdsv2_required = var.servers_metadata_imdsv2_required
+  enable_volume_encryption = var.servers_enable_volume_encryption
 }

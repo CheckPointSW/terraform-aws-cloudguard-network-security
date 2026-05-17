@@ -231,6 +231,16 @@ variable "security_rules" {
   }))
   default = []
 }
+variable "servers_metadata_imdsv2_required" {
+  type = bool
+  description = "Enforce IMDSv2 (http_tokens=\"required\") on the server instances - mitigates SSRF-based IAM credential theft. Limitations when true: AWS SDKs older than 2020 and bare IMDSv1 curl scripts fail; containerized workloads using bridge networking may lose IMDS access (default http_put_response_hop_limit=1). SDK compatibility list: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html#use-a-supported-sdk-version-for-imdsv2"
+  default = true
+}
+variable "servers_enable_volume_encryption" {
+  type = bool
+  description = "Encrypt the root EBS volume (/dev/xvda) of the server instances with the default aws/ebs KMS key. Limitations when true: only encrypts AMIs whose root device is /dev/xvda (Windows /dev/sda1 and older paravirt Linux get a phantom volume while the actual root stays unencrypted); no CMEK support (no kms_key_id variable); aws/ebs-encrypted snapshots cannot be shared cross-account directly; not retroactive - only newly-launched instances are encrypted."
+  default = true
+}
 variable "existing_security_group_id" {
   type = string
   description = "(Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created"

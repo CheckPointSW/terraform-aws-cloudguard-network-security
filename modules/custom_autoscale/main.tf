@@ -30,6 +30,18 @@ resource "aws_launch_template" "servers_launch_template" {
     enabled = true
   }
   instance_type = var.servers_instance_type
+  metadata_options {
+    http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
+  }
+  dynamic "block_device_mappings" {
+    for_each = var.enable_volume_encryption ? [1] : []
+    content {
+      device_name = "/dev/xvda"
+      ebs {
+        encrypted = true
+      }
+    }
+  }
 }
 resource "aws_autoscaling_group" "servers_group" {
   name_prefix = local.asg_name
