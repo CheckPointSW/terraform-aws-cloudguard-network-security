@@ -23,3 +23,8 @@ variable "trusted_account" {
   description = "A 12 digits number that represents the ID of a trusted account. IAM users in this account will be able assume the IAM role and receive the permissions attached to it"
   default = ""
 }
+variable "external_id" {
+  type = string
+  description = "External ID required for cross-account role assumption (confused deputy protection). Mandatory when trusted_account is set; ignored when trusted_account is empty."
+  default = ""
+}

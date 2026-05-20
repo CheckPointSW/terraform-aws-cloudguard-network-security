@@ -28,6 +28,7 @@ module "example_module" {
     permissions = "Create with read permissions"
     sts_roles = ['arn:aws:iam::111111111111:role/role_name']
     trusted_account = ""
+    external_id = ""
 }
 ```
 ## Inputs
@@ -36,6 +37,7 @@ module "example_module" {
 | permissions     | The IAM role permissions                                                                                                                                              | string       | - Create with assume role permissions (specify an STS role ARN)<br>- Create with read permissions<br>- Create with read-write permissions<br>**Default:** Create with read permissions |
 | sts_roles       | The IAM role will be able to assume these STS Roles (map of string ARNs)                                                                                              | list(string) |                                                                                                                                              |
 | trusted_account | A 12-digit number that represents the ID of a trusted account. IAM users in this account will be able to assume the IAM role and receive the permissions attached to it | string       |                                                                                                                                              |
+| external_id     | External ID required for cross-account role assumption (confused deputy protection). Mandatory when `trusted_account` is set; ignored when `trusted_account` is empty.   | string       | **Default:** ""                                                                                                                       |
 
 
 ## Outputs
