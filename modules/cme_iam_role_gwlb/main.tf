@@ -1,6 +1,13 @@
 resource "aws_iam_role" "cme_iam_role_gwlb" {
   assume_role_policy = data.aws_iam_policy_document.cme_role_assume_policy_document.json
   path = "/"
+
+  lifecycle {
+    precondition {
+      condition     = var.trusted_account == "" || var.external_id != ""
+      error_message = "external_id is required when trusted_account is set, to prevent confused deputy attacks (CGNSPC-1756)."
+    }
+  }
 }
 
 data "aws_iam_policy_document" "cme_role_assume_policy_document" {
@@ -11,6 +18,14 @@ data "aws_iam_policy_document" "cme_role_assume_policy_document" {
     principals {
       type = var.trusted_account == "" ? "Service" : "AWS"
       identifiers = var.trusted_account == "" ? ["ec2.amazonaws.com"] : [var.trusted_account]
+    }
+    dynamic "condition" {
+      for_each = var.external_id == "" ? [] : [1]
+      content {
+        test     = "StringEquals"
+        variable = "sts:ExternalId"
+        values   = [var.external_id]
+      }
     }
   }
 }
