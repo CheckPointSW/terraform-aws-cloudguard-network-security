@@ -28,3 +28,8 @@ variable "ip_mode" {
     error_message = "The ip_mode value must be one of: IPv4, DualStack, or IPv6."
   }
 }
+variable "deployment_prefix" {
+  type = string
+  description = "(Optional) Prefix to add to the VPC name"
+  default = ""
+}

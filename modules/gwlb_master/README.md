@@ -147,7 +147,7 @@ output "instance_public_ip" {
 ```
 | Name                | Description                                                                           |
 |---------------------|---------------------------------------------------------------------------------------|
-| managment_public_ip | The deployed Security Management AWS instance public IP                               |
+| management_public_ip | The deployed Security Management AWS instance public IP                               |
 | load_balancer_url   | The URL of the external Load Balancer                                                 |
 | template_name       | Name of a gateway configuration template in the automatic provisioning configuration. |
 | controller_name     | The controller name in CME.                                                           |

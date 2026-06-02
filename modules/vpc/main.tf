@@ -2,6 +2,10 @@
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
   assign_generated_ipv6_cidr_block = local.ipv6_enabled
+  
+  tags = {
+    Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-VPC" : "VPC"
+  }
 }
 
 // --- Internet Gateway ---
@@ -26,7 +30,7 @@ resource "aws_subnet" "public_subnets" {
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
   tags = {
-    Name = format("Public subnet %s", each.value)
+    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s", var.deployment_prefix, each.value) : format("Public subnet %s", each.value)
   }
 }
 
@@ -46,7 +50,7 @@ resource "aws_subnet" "private_subnets" {
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
   tags = {
-    Name = format("Private subnet %s", each.value)
+    Name = var.deployment_prefix != "" ? format("%s-Private subnet %s", var.deployment_prefix, each.value) : format("Private subnet %s", each.value)
   }
 }
 
@@ -66,7 +70,7 @@ resource "aws_subnet" "tgw_subnets" {
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
   tags = {
-    Name = format("tgw subnet %s", each.value)
+    Name = var.deployment_prefix != "" ? format("%s-tgw subnet %s", var.deployment_prefix, each.value) : format("tgw subnet %s", each.value)
   }
 }
 

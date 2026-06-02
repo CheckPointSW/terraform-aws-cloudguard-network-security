@@ -1,0 +1,14 @@
+#cloud-config
+network:
+  ipv6_enabled: ${IPMode}
+kernel_parameters:
+  sim:
+    - sim_geneve_enabled=1
+    - sim_geneve_br_dev=eth0
+    - sim_geneve_dual_arm_mode=1
+  fw:
+    - fw_geneve_enabled=1
+runcmd:
+  - |
+    python3 /etc/cloud_config.py enableCloudWatch=\"${EnableCloudWatch}\" sicKey=\"${SICKey}\" installationType=\"autoscale-dual-arm\" osVersion=\"${OsVersion}\" allowUploadDownload=\"${AllowUploadDownload}\" templateVersion=\"20250617\" templateName=\"${TemplateName}\" templateType=\"terraform_registry\" shell=\"${shell}\" enableInstanceConnect=\"${EnableInstanceConnect}\" passwordHash=\"${PasswordHash}\" MaintenanceModePassword=\"${MaintenanceModePassword}\" bootstrapScript64=\"${BootstrapScript}\"
+ 
