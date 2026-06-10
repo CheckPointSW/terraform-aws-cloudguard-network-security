@@ -1,5 +1,15 @@
 # Check Point CloudGuard Network Auto Scaling GWLB Two-Arm Terraform module for AWS
 
+> [!IMPORTANT]
+> **Supported versions**
+>
+> | Version | Minimum Jumbo Hotfix |
+> |---------|----------------------|
+> | R82     | Take #9 or later     |
+> | R82.10  | Take #3 or later     |
+>
+> Deployment on any other version or earlier Jumbo Hotfix is not supported.
+
 Terraform module which deploys an Auto Scaling Group of Check Point Security Gateways with two-arm architecture into an existing VPC.
 
 In two-arm architecture, Security Gateways have two network interfaces: eth0 (private subnet) for GWLB traffic and eth1 (public subnet) with internet access, providing enhanced security and traffic segregation.
