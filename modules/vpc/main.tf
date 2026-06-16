@@ -76,27 +76,33 @@ resource "aws_subnet" "tgw_subnets" {
 
 
 // --- Routes ---
+// One route table per public (gateway) subnet / AZ, so each AZ can route its
+// default egress independently: an IGW route for the public-IP case (default),
+// or a per-AZ NAT Gateway route that the consuming template attaches to the
+// exposed route tables when gateways are deployed without public IPs.
 resource "aws_route_table" "public_subnet_rtb" {
+  for_each = var.public_subnets_map
+
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "Public Subnets Route Table"
+    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s Route Table", var.deployment_prefix, each.value) : format("Public subnet %s Route Table", each.value)
   }
 }
 resource "aws_route" "vpc_internet_access" {
-  count = local.ipv4_enabled ? 1 : 0
-  route_table_id = aws_route_table.public_subnet_rtb.id
+  for_each = var.create_public_subnet_default_igw_route && local.ipv4_enabled ? var.public_subnets_map : {}
+  route_table_id = aws_route_table.public_subnet_rtb[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id = aws_internet_gateway.igw.id
 }
 resource "aws_route" "vpc_internet_access_ipv6" {
-  count = local.ipv6_enabled ? 1 : 0
-  route_table_id = aws_route_table.public_subnet_rtb.id
+  for_each = var.create_public_subnet_default_igw_route && local.ipv6_enabled ? var.public_subnets_map : {}
+  route_table_id = aws_route_table.public_subnet_rtb[each.key].id
   destination_ipv6_cidr_block = "::/0"
   gateway_id = aws_internet_gateway.igw.id
 }
 resource "aws_route_table_association" "public_rtb_to_public_subnets" {
   for_each = aws_subnet.public_subnets
-  route_table_id = aws_route_table.public_subnet_rtb.id
+  route_table_id = aws_route_table.public_subnet_rtb[each.key].id
   subnet_id = each.value.id
 }
 

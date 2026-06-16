@@ -11,3 +11,9 @@ output "mds_instance_name" {
 output "mds_instance_tags" {
   value = aws_instance.mds-instance.tags
 }
+output "mds_secondary_private_ips" {
+  value = local.mds_secondary_private_ips
+}
+output "mds_secondary_public_ips" {
+  value = aws_eip.mds_secondary_eip[*].public_ip
+}

@@ -6,12 +6,18 @@ module "launch_vpc" {
   private_subnets_map = {}
   tgw_subnets_map = var.tgw_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  // When gateways are deployed without public IPs (allocate_public_IP = false),
+  // skip the per-AZ IGW default route so a per-AZ NAT Gateway route can be used
+  // for outbound connectivity. The per-AZ public route tables are exposed via
+  // module.launch_vpc.public_subnet_rtbs.
+  create_public_subnet_default_igw_route = var.allocate_public_IP
 }
 module "tgw_gwlb"{
   source = "../tgw_gwlb"
   
   vpc_id = module.launch_vpc.vpc_id
   gateways_subnets = module.launch_vpc.public_subnets_ids_list
+  management_subnet_id = var.management_subnet_id
   number_of_AZs = var.number_of_AZs
   availability_zones = var.availability_zones
   internet_gateway_id = module.launch_vpc.aws_igw

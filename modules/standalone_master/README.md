@@ -10,6 +10,8 @@ These types of Terraform resources are supported:
 * [Route](https://www.terraform.io/docs/providers/aws/r/route.html)
 * [EIP](https://www.terraform.io/docs/providers/aws/r/eip.html) - conditional creation
 
+See the [Install a Security Management Server with CloudGuard for AWS (sk130372)](https://support.checkpoint.com/results/sk/sk130372) for additional information
+
 This solution uses the following modules:
 - standalone
 - amis

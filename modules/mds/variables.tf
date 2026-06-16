@@ -8,6 +8,16 @@ variable "subnet_id" {
   type = string
   description = "To access the instance from the internet, make sure the subnet has a route to the internet"
 }
+variable "mds_additional_private_ips" {
+  type = number
+  description = "(Optional) Number of additional secondary private IPv4 addresses to assign to the Multi-Domain Server ENI. Useful when hosting multiple domains, each requiring its own IP. Existing single-IP deployments keep the default of 0"
+  default = 0
+}
+variable "mds_allocate_and_associate_eip_for_private_ips" {
+  type = bool
+  description = "(Optional) When true, allocate an Elastic IP for each additional secondary private IP and associate it. Has no effect when mds_additional_private_ips is 0"
+  default = false
+}
 
 // --- EC2 Instance Configuration ---
 variable "mds_name" {

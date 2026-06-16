@@ -11,7 +11,7 @@ These types of Terraform resources are supported:
 * [EIP](https://www.terraform.io/docs/providers/aws/r/eip.html) - conditional creation
 
 
-See the [Automatically Provision a CloudGuard Security Gateway in AWS](https://supportcenter.us.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk131434) for additional information
+See the [Automatically Provision a CloudGuard Security Gateway in AWS (sk131434)](https://support.checkpoint.com/results/sk/sk131434) for additional information
 
 This solution uses the following modules:
 - gateway

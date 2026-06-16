@@ -14,7 +14,7 @@ These types of Terraform resources are supported:
 * [Auto Scaling Group](https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html)
 * [IAM Role](https://www.terraform.io/docs/providers/aws/r/iam_role.html) - conditional creation
 
-See the [CloudGuard Network for AWS Transit Gateway R80.10 and Higher Deployment Guide](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_AWS_Transit_Gateway/Content/Topics-AWS-TGW-R80-10-AG/Introduction.htm) for additional information
+See the [AutoScale with Transit Gateway guide](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_AWS_AutoScale_with_Transit_Gateway/Content/Topics-AWS-AutoScale-TGW-DG/Introduction.htm) for additional information
 
 This solution uses the following modules:
 - tgw_asg

@@ -33,3 +33,9 @@ variable "deployment_prefix" {
   description = "(Optional) Prefix to add to the VPC name"
   default = ""
 }
+
+variable "create_public_subnet_default_igw_route" {
+  type = bool
+  description = "(Optional) When true (default), add a 0.0.0.0/0 (and ::/0) route via the Internet Gateway to each per-AZ public route table. Set to false when the consuming template attaches a per-AZ NAT Gateway default route instead (gateways without public IPs)"
+  default = true
+}

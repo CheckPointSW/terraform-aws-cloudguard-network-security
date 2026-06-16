@@ -10,8 +10,14 @@ output "private_subnets_ids_list" {
 output "tgw_subnets_ids_list" {
   value = [for tgw_subnet in aws_subnet.tgw_subnets : tgw_subnet.id]
 }
+output "public_subnet_rtbs" {
+  // Map of availability-zone => public route table id (one route table per AZ)
+  value = { for az, rtb in aws_route_table.public_subnet_rtb : az => rtb.id }
+}
 output "public_rtb" {
-  value = aws_route_table.public_subnet_rtb.id
+  // Deprecated: with per-AZ route tables this returns the first public route table id.
+  // Prefer public_subnet_rtbs for per-AZ wiring.
+  value = length(aws_route_table.public_subnet_rtb) > 0 ? values(aws_route_table.public_subnet_rtb)[0].id : null
 }
 output "aws_igw" {
   value = aws_internet_gateway.igw.id

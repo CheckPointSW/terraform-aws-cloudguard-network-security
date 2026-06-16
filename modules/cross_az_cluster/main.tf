@@ -175,7 +175,7 @@ resource "aws_instance" "member-a-instance" {
   }
 
   lifecycle {
-    ignore_changes = [ebs_block_device,]
+    ignore_changes = [ebs_block_device, source_dest_check,]
   }
 
   user_data = templatefile("${path.module}/cluster_member_a_userdata.yaml", {
@@ -230,7 +230,7 @@ resource "aws_instance" "member-b-instance" {
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
   }
   lifecycle {
-    ignore_changes = [ebs_block_device,]
+    ignore_changes = [ebs_block_device, source_dest_check,]
   }
 
   user_data = templatefile("${path.module}/cluster_member_b_userdata.yaml", {

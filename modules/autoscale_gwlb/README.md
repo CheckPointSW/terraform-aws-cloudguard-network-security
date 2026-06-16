@@ -9,7 +9,7 @@ These types of Terraform resources are supported:
 * [CloudWatch Metric Alarm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm)
 
 
-See the [CloudGuard Auto Scaling for AWS](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CloudGuard_Network_for_AWS_AutoScaling_DeploymentGuide/Topics-AWS-AutoScale-DG/Check-Point-CloudGuard-Network-for-AWS.htm) for additional information
+See the [GWLB Auto Scaling Group guide](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_Network_for_AWS_Gateway_Load_Balancer_ASG/Content/Topics-AWS-GWLB-ASG-DG/Introduction.htm) for additional information
 
 This solution uses the following modules:
 - amis

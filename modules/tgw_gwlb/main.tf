@@ -222,6 +222,7 @@ module "gwlb" {
   
   vpc_id = var.vpc_id
   subnet_ids = var.gateways_subnets
+  management_subnet_id = var.management_subnet_id
 
   // --- General Settings ---
   key_name = var.key_name
