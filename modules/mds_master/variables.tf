@@ -10,6 +10,16 @@ variable "public_subnet_az" {
   type = string
   description = "The availability-zone for the public subnet. ( e.g. \"us-east-1a\" )"
 }
+variable "mds_additional_private_ips" {
+  type = number
+  description = "(Optional) Number of additional secondary private IPv4 addresses to assign to the Multi-Domain Server ENI. Useful when hosting multiple domains, each requiring its own IP. Existing single-IP deployments keep the default of 0"
+  default = 0
+}
+variable "mds_allocate_and_associate_eip_for_private_ips" {
+  type = bool
+  description = "(Optional) When true, allocate an Elastic IP for each additional secondary private IP and associate it. Has no effect when mds_additional_private_ips is 0"
+  default = false
+}
 variable "subnets_bit_length" {
   type = number
   description = "Number of additional bits with which to extend the vpc cidr. For example, if given a vpc_cidr ending in /16 and a subnets_bit_length value of 4, the resulting subnet address will have length /20."

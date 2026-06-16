@@ -136,9 +136,36 @@ resource "aws_network_interface" "external-eni" {
   security_groups = [aws_security_group.mds_sg.id]
   description = "eth0"
   source_dest_check = true
+  private_ips_count = var.mds_additional_private_ips
   tags = {
     Name = format("%s-network_interface", var.mds_name)
   }
+}
+
+locals {
+  // The secondary private IPs assigned to the ENI (everything except the primary)
+  // sorted for deterministic ordering so the index-based EIP association below is stable across plans
+  mds_secondary_private_ips = sort([
+    for ip in tolist(aws_network_interface.external-eni.private_ips) :
+    ip if ip != aws_network_interface.external-eni.private_ip
+  ])
+  mds_eip_for_private_ips_count = var.mds_allocate_and_associate_eip_for_private_ips ? var.mds_additional_private_ips : 0
+}
+
+resource "aws_eip" "mds_secondary_eip" {
+  count  = local.mds_eip_for_private_ips_count
+  domain = "vpc"
+  tags = {
+    Name = format("%s-secondary-eip-%d", var.mds_name, count.index + 1)
+  }
+}
+
+resource "aws_eip_association" "mds_secondary_eip_assoc" {
+  count                = local.mds_eip_for_private_ips_count
+  allocation_id        = aws_eip.mds_secondary_eip[count.index].id
+  network_interface_id = aws_network_interface.external-eni.id
+  private_ip_address   = local.mds_secondary_private_ips[count.index]
+  depends_on           = [aws_network_interface.external-eni]
 }
 
 resource "aws_launch_template" "mds_launch_template" {

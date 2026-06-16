@@ -10,7 +10,7 @@ These types of Terraform resources are supported:
 * [Route](https://www.terraform.io/docs/providers/aws/r/route.html) - conditional creation
 * [IAM Role](https://www.terraform.io/docs/providers/aws/r/iam_role.html) - conditional creation
 
-See the [Deploying a Check Point Cluster in AWS (Amazon Web Services)](https://supportcenter.checkpoint.com/supportcenter/portal?eventSubmit_doGoviewsolutiondetails=&solutionid=sk104418) for additional information
+See the [CloudGuard Network for AWS Cross-AZ Cluster Deployment Guide](https://sc1.checkpoint.com/documents/IaaS/WebAdminGuides/EN/CP_CloudGuard_for_AWS_Cross_AZ_Cluster/CP_CloudGuard_for_AWS_Cross_AZ_Cluster_DeploymentGuide.pdf) for additional information
 
 This solution uses the following modules:
 - amis

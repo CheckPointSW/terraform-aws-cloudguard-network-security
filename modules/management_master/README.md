@@ -10,7 +10,7 @@ These types of Terraform resources are supported:
 * [EIP](https://www.terraform.io/docs/providers/aws/r/eip.html) - conditional creation
 * [IAM Role](https://www.terraform.io/docs/providers/aws/r/iam_role.html) - conditional creation
 
-See the [Security Management Server with CloudGuard for AWS](https://registry.terraform.io/modules/checkpointsw/cloudguard-network-security/aws/latest) for additional information
+See the [Install a Security Management Server with CloudGuard for AWS (sk130372)](https://support.checkpoint.com/results/sk/sk130372) for additional information
 
 This solution uses the following modules:
 - amis
