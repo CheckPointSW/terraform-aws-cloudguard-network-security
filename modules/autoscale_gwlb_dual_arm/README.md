@@ -39,7 +39,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/autoscale_gwlb_dual_arm"
-    version = "1.0.5"
+    version = "1.1.0"
 
     // --- Environment ---
     deployment_prefix = "chkp"
