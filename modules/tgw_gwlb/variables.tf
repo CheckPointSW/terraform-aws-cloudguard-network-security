@@ -329,9 +329,3 @@ variable "existing_security_group_id" {
   }
 }
 
-
-variable "management_subnet_id" {
-  type = string
-  description = "(Optional) Subnet id in which to deploy the Security Management Server, decoupling it from the gateway subnets. When empty, management is deployed into the first gateway subnet (backward compatible)"
-  default = ""
-}

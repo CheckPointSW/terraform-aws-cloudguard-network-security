@@ -267,9 +267,3 @@ variable "existing_security_group_id" {
     error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
   }
 }
-
-variable "management_subnet_id" {
-  type = string
-  description = "(Optional) Subnet id in which to deploy the Security Management Server, decoupling it from the gateway subnets. When empty, management is deployed into the first gateway subnet (backward compatible)"
-  default = ""
-}
