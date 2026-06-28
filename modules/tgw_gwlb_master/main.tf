@@ -17,7 +17,6 @@ module "tgw_gwlb"{
   
   vpc_id = module.launch_vpc.vpc_id
   gateways_subnets = module.launch_vpc.public_subnets_ids_list
-  management_subnet_id = var.management_subnet_id
   number_of_AZs = var.number_of_AZs
   availability_zones = var.availability_zones
   internet_gateway_id = module.launch_vpc.aws_igw

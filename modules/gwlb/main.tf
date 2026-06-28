@@ -73,7 +73,7 @@ module "management" {
   source = "../management"
 
   vpc_id = var.vpc_id
-  subnet_id = var.management_subnet_id != "" ? var.management_subnet_id : var.subnet_ids[0]
+  subnet_id = var.subnet_ids[0]
   management_name = var.management_server
   management_instance_type = var.management_instance_type
   key_name = var.key_name
