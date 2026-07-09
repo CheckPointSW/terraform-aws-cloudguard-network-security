@@ -1,5 +1,13 @@
 
 // --- VPC ---
+// Resolve the AWS Marketplace product code so VPC infrastructure can be
+// PRM-tagged for revenue attribution.
+module "amis" {
+  source = "../amis"
+
+  version_license = var.gateway_version
+}
+
 module "launch_vpc" {
   source = "../vpc"
 
@@ -7,6 +15,7 @@ module "launch_vpc" {
   public_subnets_map = var.public_subnets_map
   private_subnets_map = var.private_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  product_code = module.amis.product_code
 }
 
 resource "aws_route_table" "private_subnet_rtb" {
@@ -14,6 +23,7 @@ resource "aws_route_table" "private_subnet_rtb" {
   vpc_id = module.launch_vpc.vpc_id
   tags = {
     Name = "Private Subnets Route Table"
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 resource "aws_route_table_association" "private_rtb_to_private_subnets_a" {

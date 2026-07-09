@@ -1,5 +1,13 @@
 
 
+// Resolve the AWS Marketplace product code from the gateway version/license so the
+// GWLB and endpoint service can be PRM-tagged for revenue attribution.
+module "amis" {
+  source = "../amis"
+
+  version_license = var.gateway_version
+}
+
 module "gateway_load_balancer" {
   source = "../load_balancer"
 
@@ -12,6 +20,7 @@ module "gateway_load_balancer" {
   tags = {
     x-chkp-management = var.management_server
     x-chkp-template = var.configuration_template
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
   vpc_id = var.vpc_id
   load_balancer_protocol = "GENEVE"
@@ -31,6 +40,7 @@ depends_on = [module.gateway_load_balancer]
   supported_ip_address_types = var.ip_mode != "IPv4" ? ["ipv4", "ipv6"] : ["ipv4"]
   tags = {
     "Name" = "gwlb-endpoint-service-${var.gateway_load_balancer_name}"
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 

@@ -12,6 +12,7 @@ module "common_permissive_sg" {
   vpc_id = var.vpc_id
   resources_tag_name = var.resources_tag_name
   gateway_name = var.gateway_name
+  product_code = module.amis.product_code
 }
 
 resource "aws_iam_instance_profile" "cluster_instance_profile" {
@@ -38,7 +39,9 @@ resource "aws_network_interface" "member_a_external_eni" {
   source_dest_check = false
   private_ips_count = 1
   tags = {
-    x-chkp-interface-type = "external" }
+    x-chkp-interface-type = "external"
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_b_external_eni" {
@@ -48,7 +51,9 @@ resource "aws_network_interface" "member_b_external_eni" {
   source_dest_check = false
   private_ips_count = 1
   tags = {
-    x-chkp-interface-type = "external" }
+    x-chkp-interface-type = "external"
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_a_internal_eni" {
@@ -57,7 +62,9 @@ resource "aws_network_interface" "member_a_internal_eni" {
   description = "Member A internal"
   source_dest_check = false
   tags = {
-    x-chkp-interface-type = "internal" }
+    x-chkp-interface-type = "internal"
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_b_internal_eni" {
@@ -66,7 +73,9 @@ resource "aws_network_interface" "member_b_internal_eni" {
   description = "Member B internal"
   source_dest_check = false
   tags = {
-    x-chkp-interface-type = "internal" }
+    x-chkp-interface-type = "internal"
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_route" "internal_default_route" {
@@ -99,6 +108,9 @@ resource "aws_launch_template" "member_a_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = aws_iam_instance_profile.cluster_instance_profile.id
@@ -127,6 +139,9 @@ resource "aws_launch_template" "member_b_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = aws_iam_instance_profile.cluster_instance_profile.id
@@ -164,7 +179,9 @@ resource "aws_instance" "member-a-instance" {
       aws_eip.member_a_eip.public_ip, aws_network_interface.member_a_external_eni.private_ip,aws_network_interface.member_a_internal_eni.private_ip),
     x-chkp-cluster-ips = format("cluster-ip=%s:secondary-external-private-ip=%s",
       aws_eip.cluster_eip.public_ip, element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0))
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -172,6 +189,9 @@ resource "aws_instance" "member-a-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   lifecycle {
@@ -220,7 +240,9 @@ resource "aws_instance" "member-b-instance" {
       aws_eip.member_b_eip.public_ip, aws_network_interface.member_b_external_eni.private_ip,aws_network_interface.member_b_internal_eni.private_ip),
     x-chkp-cluster-ips = format("cluster-ip=%s:secondary-external-private-ip=%s",
       aws_eip.cluster_eip.public_ip, element(tolist(setsubtract(tolist(aws_network_interface.member_b_external_eni.private_ips), [aws_network_interface.member_b_external_eni.private_ip])), 0))
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -228,6 +250,9 @@ resource "aws_instance" "member-b-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
   lifecycle {
     ignore_changes = [ebs_block_device, source_dest_check,]
@@ -258,10 +283,19 @@ resource "aws_instance" "member-b-instance" {
 }
 
 resource "aws_eip" "cluster_eip" {
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 resource "aws_eip" "member_a_eip" {
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 resource "aws_eip" "member_b_eip" {
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_eip_association" "cluster_address_assoc" {

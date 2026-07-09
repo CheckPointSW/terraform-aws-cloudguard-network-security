@@ -73,6 +73,11 @@ variable "ami_id" {
   type = string
   description = "The AMI to use for the instance"
 }
+variable "product_code" {
+  type = string
+  description = "AWS Marketplace product code used for PRM resource tagging (aws-apn-id = pc:<product_code>)."
+  default = ""
+}
 variable "iam_instance_profile_id" {
   type = string
   description = "The IAM instance profile id"

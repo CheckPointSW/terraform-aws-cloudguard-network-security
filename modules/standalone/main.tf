@@ -14,6 +14,7 @@ module "common_permissive_sg" {
   resources_tag_name = var.resources_tag_name
   gateway_name = var.standalone_name
   ip_mode = var.ip_mode
+  product_code = module.amis.product_code
 }
 
 resource "aws_iam_instance_profile" "standalone_instance_profile" {
@@ -53,7 +54,9 @@ resource "aws_network_interface" "public_eni" {
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
-    Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name) }
+    Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 resource "aws_network_interface" "private_eni" {
   subnet_id = var.private_subnet_id
@@ -62,7 +65,9 @@ resource "aws_network_interface" "private_eni" {
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
-    Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name) }
+    Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.standalone_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 module "common_eip" {
@@ -72,6 +77,7 @@ module "common_eip" {
   external_eni_id = aws_network_interface.public_eni.id
   private_ip_address = aws_network_interface.public_eni.private_ip
   ip_mode = var.ip_mode
+  product_code = module.amis.product_code
 }
 
 module "common_internal_default_route" {
@@ -87,6 +93,9 @@ resource "aws_launch_template" "standalone_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = (local.enable_cloudwatch_policy == 1 ? aws_iam_instance_profile.standalone_instance_profile[0].id : "")
@@ -118,7 +127,9 @@ resource "aws_instance" "standalone-instance" {
 
   tags = merge({
     Name = var.standalone_name
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -126,6 +137,9 @@ resource "aws_instance" "standalone-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   user_data = templatefile("${path.module}/standalone_userdata.yaml", {

@@ -1,3 +1,11 @@
+// Resolve the AWS Marketplace product code so VPC infrastructure can be
+// PRM-tagged for revenue attribution.
+module "amis" {
+  source = "../amis"
+
+  version_license = var.gateway_version
+}
+
 module "launch_vpc" {
   source = "../vpc"
 
@@ -6,6 +14,7 @@ module "launch_vpc" {
   private_subnets_map = {}
   tgw_subnets_map = var.tgw_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  product_code = module.amis.product_code
   // When gateways are deployed without public IPs (allocate_public_IP = false),
   // skip the per-AZ IGW default route so a per-AZ NAT Gateway route can be used
   // for outbound connectivity. The per-AZ public route tables are exposed via

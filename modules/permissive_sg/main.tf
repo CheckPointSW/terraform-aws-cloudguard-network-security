@@ -2,9 +2,9 @@ resource "aws_security_group" "permissive_sg" {
   description = "Permissive security group"
   vpc_id = var.vpc_id
   name_prefix = format("%s-PermissiveSecurityGroup", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) // Group name
-  tags = {
+  tags = merge({
     Name = format("%s-PermissiveSecurityGroup", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) // Resource name
-  }
+  }, var.product_code != "" ? { "aws-apn-id" = "pc:${var.product_code}" } : {})
 }
 # IPv4 ingress rules
 resource "aws_vpc_security_group_ingress_rule" "ingress_rule_ipv4_custom" {

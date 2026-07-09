@@ -55,6 +55,7 @@ resource "aws_security_group" "permissive_sg" {
   }
   tags = {
     Name = format("%s_PermissiveSecurityGroup", local.asg_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 
@@ -93,6 +94,18 @@ resource "aws_launch_template" "asg_launch_template" {
   }
 
   description = "Initial template version"
+
+  // PRM revenue-attribution tag on volumes and network interfaces created at launch
+  // (instances are tagged via the ASG tag block below with propagate_at_launch).
+  dynamic "tag_specifications" {
+    for_each = module.amis.product_code != "" ? toset(["volume", "network-interface"]) : toset([])
+    content {
+      resource_type = tag_specifications.value
+      tags = {
+        aws-apn-id = "pc:${module.amis.product_code}"
+      }
+    }
+  }
 
   user_data = base64encode(templatefile("${path.module}/asg_userdata.yaml", {
     // script's arguments
@@ -153,6 +166,12 @@ resource "aws_autoscaling_group" "asg" {
       value = tag.value
       propagate_at_launch = true
     }
+  }
+
+  tag {
+    key = "aws-apn-id"
+    value = "pc:${module.amis.product_code}"
+    propagate_at_launch = true
   }
 }
 

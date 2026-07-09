@@ -25,6 +25,7 @@ module "common_permissive_sg" {
   vpc_id = var.vpc_id
   resources_tag_name = var.resources_tag_name
   gateway_name = var.gateway_name
+  product_code = module.amis.product_code
 }
 
 resource "aws_iam_instance_profile" "cluster_instance_profile" {
@@ -54,7 +55,9 @@ resource "aws_network_interface" "member_a_external_eni" {
   }
   private_ips_count = 1
   tags = {
-    Name = format("%s-Member_A_ExternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-Member_A_ExternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_b_external_eni" {
@@ -63,7 +66,9 @@ resource "aws_network_interface" "member_b_external_eni" {
   description = "Member B external"
   source_dest_check = false
   tags = {
-    Name = format("%s-Member_B_ExternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-Member_B_ExternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_a_internal_eni" {
@@ -76,7 +81,9 @@ resource "aws_network_interface" "member_a_internal_eni" {
   }
   private_ips_count = 1
   tags = {
-    Name = format("%s-Member_A_InternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-Member_A_InternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_network_interface" "member_b_internal_eni" {
@@ -85,7 +92,9 @@ resource "aws_network_interface" "member_b_internal_eni" {
   description = "Member B internal"
   source_dest_check = false
   tags = {
-    Name = format("%s-Member_B_InternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-Member_B_InternalInterface", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_route" "internal_default_route" {
@@ -109,6 +118,9 @@ resource "aws_launch_template" "member_a_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = aws_iam_instance_profile.cluster_instance_profile.id
@@ -133,6 +145,9 @@ resource "aws_launch_template" "member_b_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = aws_iam_instance_profile.cluster_instance_profile.id
@@ -172,7 +187,9 @@ resource "aws_instance" "member-a-instance" {
     x-chkp-cluster-ips = format("cluster-ip=%s:cluster-eth0-private-ip=%s:cluster-eth1-private-ip=%s",
       var.allocate_and_associate_eip ? aws_eip.cluster_eip[0].public_ip : "", element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
       element(tolist(setsubtract(tolist(aws_network_interface.member_a_internal_eni.private_ips), [aws_network_interface.member_a_internal_eni.private_ip])), 0))
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -180,6 +197,9 @@ resource "aws_instance" "member-a-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   lifecycle {
@@ -226,7 +246,9 @@ resource "aws_instance" "member-b-instance" {
     x-chkp-cluster-ips = format("cluster-ip=%s:cluster-eth0-private-ip=%s:cluster-eth1-private-ip=%s",
       var.allocate_and_associate_eip ? aws_eip.cluster_eip[0].public_ip : "", element(tolist(setsubtract(tolist(aws_network_interface.member_a_external_eni.private_ips), [aws_network_interface.member_a_external_eni.private_ip])), 0),
       element(tolist(setsubtract(tolist(aws_network_interface.member_a_internal_eni.private_ips), [aws_network_interface.member_a_internal_eni.private_ip])), 0))
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -234,6 +256,9 @@ resource "aws_instance" "member-b-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   lifecycle {
@@ -266,6 +291,9 @@ resource "aws_eip" "cluster_eip" {
   
   # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
   network_border_group = local.is_local_zone ? local.network_border_group : null
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_eip" "member_a_eip" {
@@ -274,6 +302,9 @@ resource "aws_eip" "member_a_eip" {
   
   # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
   network_border_group = local.is_local_zone ? local.network_border_group : null
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_eip" "member_b_eip" {
@@ -282,6 +313,9 @@ resource "aws_eip" "member_b_eip" {
   
   # For Local Zones, specify the NetworkBorderGroup to ensure EIP is allocated in the same zone
   network_border_group = local.is_local_zone ? local.network_border_group : null
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_eip_association" "cluster_address_assoc" {
