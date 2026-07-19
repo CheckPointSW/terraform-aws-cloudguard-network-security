@@ -14,6 +14,7 @@ resource "aws_security_group" "management_sg" {
   tags = {
     Name = format("%s_SecurityGroup", var.management_name)
     // Resource name
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
   ingress {
     from_port = 257
@@ -144,12 +145,16 @@ resource "aws_network_interface" "external-eni" {
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
     Name = format("%s-network_interface", var.management_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 
 resource "aws_eip" "eip" {
   count = var.allocate_and_associate_eip && local.ipv4_enabled ? 1 : 0
   network_interface = aws_network_interface.external-eni.id
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 resource "aws_iam_instance_profile" "management_instance_profile" {
@@ -168,6 +173,9 @@ resource "aws_launch_template" "management_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = local.use_role == 1 ? (local.pre_role == 1 ? aws_iam_instance_profile.management_instance_profile[0].id : join("", (var.is_gwlb == true ? module.cme_iam_role_gwlb.*.cme_iam_profile_name : module.cme_iam_role.*.cme_iam_profile_name))): ""
@@ -198,7 +206,9 @@ resource "aws_instance" "management-instance" {
 
   tags = merge({
     Name = var.management_name
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -206,6 +216,9 @@ resource "aws_instance" "management-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   lifecycle {

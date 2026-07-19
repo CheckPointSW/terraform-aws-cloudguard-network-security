@@ -55,6 +55,7 @@ resource "aws_security_group" "permissive_sg" {
   }
   tags = {
     Name = format("%s_PermissiveSecurityGroup", local.asg_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 
@@ -76,6 +77,20 @@ resource "aws_launch_template" "asg_launch_template" {
     resource_type = "network-interface"
     tags = {
       x-chkp-anti-spoofing = "false"
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
+  }
+
+  // PRM revenue-attribution tag on volumes created at launch
+  // (instances are tagged via the ASG tag block below with propagate_at_launch;
+  // the second ENI and EIP attached at runtime are tagged by the dual-arm Lambda).
+  dynamic "tag_specifications" {
+    for_each = module.amis.product_code != "" ? toset(["volume"]) : toset([])
+    content {
+      resource_type = tag_specifications.value
+      tags = {
+        aws-apn-id = "pc:${module.amis.product_code}"
+      }
     }
   }
 
@@ -167,6 +182,12 @@ resource "aws_autoscaling_group" "asg" {
       value = tag.value
       propagate_at_launch = true
     }
+  }
+
+  tag {
+    key = "aws-apn-id"
+    value = "pc:${module.amis.product_code}"
+    propagate_at_launch = true
   }
 }
 
@@ -328,6 +349,9 @@ resource "aws_lambda_function" "multi_eni_lambda" {
       S3_KEY = "gwlb/dual_arm_lifecycle_handler.py"
       LAMBDA_AUTO_UPDATE = tostring(var.lambda_auto_update)
       IPAM_POOL_ID = var.ipam_pool_id
+      # PRM product code so the Lambda can tag the runtime-created ENI and EIP
+      # with aws-apn-id = pc:<PRODUCT_CODE> for revenue attribution.
+      PRODUCT_CODE = module.amis.product_code
     }
   }
   

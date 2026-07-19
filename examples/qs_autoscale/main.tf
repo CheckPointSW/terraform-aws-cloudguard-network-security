@@ -37,6 +37,14 @@ resource "aws_security_group" "external_alb_security_group" {
   }
 }
 
+// Resolve the AWS Marketplace product code from the gateway version/license so the
+// load balancers can be PRM-tagged for revenue attribution.
+module "amis" {
+  source = "../../modules/amis"
+
+  version_license = var.gateway_version
+}
+
 module "external_load_balancer" {
   source = "../../modules/load_balancer"
 
@@ -45,7 +53,9 @@ module "external_load_balancer" {
   prefix_name = "${var.prefix}-External"
   internal = false
   security_groups = local.alb_condition ? [aws_security_group.external_alb_security_group[0].id] : []
-  tags = {}
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
   vpc_id = var.vpc_id
   load_balancer_protocol = var.load_balancer_protocol
   target_group_port = local.encrypted_protocol_condition ? 9443 : 9080
@@ -148,6 +158,7 @@ module "internal_load_balancer" {
   tags = {
     x-chkp-management = "${var.provision_tag}-management"
     x-chkp-template = "${var.provision_tag}-template"
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
   vpc_id = var.vpc_id
   load_balancer_protocol = var.load_balancer_protocol

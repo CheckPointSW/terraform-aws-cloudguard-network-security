@@ -2,6 +2,7 @@ resource "aws_eip" "gateway_eip" {
   count = local.allocate_and_associate_eip_condition
   network_interface = var.external_eni_id
   network_border_group = var.network_border_group != "" ? var.network_border_group : null
+  tags = var.product_code != "" ? { "aws-apn-id" = "pc:${var.product_code}" } : {}
 }
 resource "aws_eip_association" "address_assoc" {
   count = local.allocate_and_associate_eip_condition

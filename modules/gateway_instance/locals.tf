@@ -32,6 +32,9 @@ locals {
 
   volume_encryption_condition = var.volume_encryption != "" ? true : false
 
+  // AWS Partner Revenue Measurement (PRM) tag, added to revenue-generating resources.
+  prm_tags = var.product_code != "" ? { "aws-apn-id" = "pc:${var.product_code}" } : {}
+
   //Splits the version and licence and returns the os version
   version_split = element(split("-", var.gateway_version), 0)
 

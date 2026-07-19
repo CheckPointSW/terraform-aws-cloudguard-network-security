@@ -1,3 +1,11 @@
+// Resolve the AWS Marketplace product code so VPC infrastructure can be
+// PRM-tagged for revenue attribution.
+module "amis" {
+  source = "../../modules/amis"
+
+  version_license = var.gateway_version
+}
+
 module "launch_vpc" {
   source = "../../modules/vpc"
 
@@ -5,6 +13,7 @@ module "launch_vpc" {
   public_subnets_map = var.public_subnets_map
   private_subnets_map = var.private_subnets_map
   subnets_bit_length = var.subnets_bit_length
+  product_code = module.amis.product_code
 }
 
 module "launch_qs_autoscale" {

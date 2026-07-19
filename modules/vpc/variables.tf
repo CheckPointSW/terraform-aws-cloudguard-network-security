@@ -39,3 +39,8 @@ variable "create_public_subnet_default_igw_route" {
   description = "(Optional) When true (default), add a 0.0.0.0/0 (and ::/0) route via the Internet Gateway to each per-AZ public route table. Set to false when the consuming template attaches a per-AZ NAT Gateway default route instead (gateways without public IPs)"
   default = true
 }
+variable "product_code" {
+  type = string
+  description = "(Optional) AWS Marketplace product code used for PRM resource tagging (aws-apn-id = pc:<product_code>). Leave empty to skip PRM tagging of VPC infrastructure."
+  default = ""
+}

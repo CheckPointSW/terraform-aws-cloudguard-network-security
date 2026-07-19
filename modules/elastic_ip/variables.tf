@@ -26,3 +26,8 @@ variable "network_border_group" {
   description = "Optional network border group for EIP allocation (required for Local Zones)."
   default = ""
 }
+variable "product_code" {
+  type = string
+  description = "AWS Marketplace product code used for PRM resource tagging (aws-apn-id = pc:<product_code>)."
+  default = ""
+}

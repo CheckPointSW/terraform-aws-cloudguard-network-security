@@ -23,6 +23,7 @@ module "common_permissive_sg" {
   resources_tag_name = var.resources_tag_name
   gateway_name = var.gateway_name
   ip_mode = var.ip_mode
+  product_code = module.amis.product_code
 }
 
 resource "aws_iam_instance_profile" "gateway_instance_profile" {
@@ -63,7 +64,9 @@ resource "aws_network_interface" "public_eni" {
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
-    Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-external-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 resource "aws_network_interface" "private_eni" {
   subnet_id = var.private_subnet_id
@@ -72,7 +75,9 @@ resource "aws_network_interface" "private_eni" {
   source_dest_check = false
   ipv6_address_count = local.ipv6_enabled ? 1 : 0
   tags = {
-    Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name) }
+    Name = format("%s-internal-eni", var.resources_tag_name != "" ? var.resources_tag_name : var.gateway_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 }
 
 module "common_eip" {
@@ -86,6 +91,7 @@ module "common_eip" {
   private_ip_address = aws_network_interface.public_eni.private_ip
   ip_mode = var.ip_mode
   network_border_group = local.is_local_zone ? local.network_border_group : ""
+  product_code = module.amis.product_code
 }
 
 module "common_internal_default_route" {
@@ -110,6 +116,7 @@ module "common_gateway_instance" {
   gateway_version = module.amis.version_license_with_suffix
   gateway_instance_type = var.gateway_instance_type
   instance_tags = var.instance_tags
+  product_code = module.amis.product_code
   key_name = var.key_name
   iam_instance_profile_id = (local.enable_cloudwatch_policy == 1 ? aws_iam_instance_profile.gateway_instance_profile[0].id : "")
   ami_id = module.amis.ami_id

@@ -2,15 +2,16 @@
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
   assign_generated_ipv6_cidr_block = local.ipv6_enabled
-  
-  tags = {
+
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-VPC" : "VPC"
-  }
+  }, local.prm_tags)
 }
 
 // --- Internet Gateway ---
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
+  tags = local.prm_tags
 }
 
 // --- Public Subnets ---
@@ -29,9 +30,9 @@ resource "aws_subnet" "public_subnets" {
   enable_resource_name_dns_a_record_on_launch    = local.ipv4_enabled
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Public subnet %s", var.deployment_prefix, each.value) : format("Public subnet %s", each.value)
-  }
+  }, local.prm_tags)
 }
 
 // --- Private Subnets ---
@@ -49,9 +50,9 @@ resource "aws_subnet" "private_subnets" {
   enable_resource_name_dns_a_record_on_launch    = local.ipv4_enabled
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Private subnet %s", var.deployment_prefix, each.value) : format("Private subnet %s", each.value)
-  }
+  }, local.prm_tags)
 }
 
 // --- tgw Subnets ---
@@ -69,9 +70,9 @@ resource "aws_subnet" "tgw_subnets" {
   enable_resource_name_dns_a_record_on_launch    = local.ipv4_enabled
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-tgw subnet %s", var.deployment_prefix, each.value) : format("tgw subnet %s", each.value)
-  }
+  }, local.prm_tags)
 }
 
 
@@ -84,9 +85,9 @@ resource "aws_route_table" "public_subnet_rtb" {
   for_each = var.public_subnets_map
 
   vpc_id = aws_vpc.vpc.id
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Public subnet %s Route Table", var.deployment_prefix, each.value) : format("Public subnet %s Route Table", each.value)
-  }
+  }, local.prm_tags)
 }
 resource "aws_route" "vpc_internet_access" {
   for_each = var.create_public_subnet_default_igw_route && local.ipv4_enabled ? var.public_subnets_map : {}

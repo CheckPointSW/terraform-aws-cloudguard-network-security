@@ -1,6 +1,11 @@
 variable "vpc_id" {
   type = string
 }
+variable "product_code" {
+  type = string
+  description = "(Optional) AWS Marketplace product code used for PRM resource tagging (aws-apn-id = pc:<product_code>). Leave empty to skip PRM tagging of the security group."
+  default = ""
+}
 variable "resources_tag_name" {
   type = string
   description = "(Optional)"

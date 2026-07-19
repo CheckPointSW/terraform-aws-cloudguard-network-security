@@ -35,7 +35,7 @@ resource "aws_instance" "gateway_instance" {
   tags = merge({
     Name = var.gateway_name
     x-chkp-tags = format("management=%s:template=%s:ip-address=%s", var.management_server, var.configuration_template, var.control_gateway_over_public_or_private_address)
-  }, var.instance_tags)
+  }, var.instance_tags, local.prm_tags)
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -43,6 +43,7 @@ resource "aws_instance" "gateway_instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition ? true : false
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = local.prm_tags
   }
 
   metadata_options {

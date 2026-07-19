@@ -14,6 +14,7 @@ resource "aws_security_group" "mds_sg" {
   tags = {
     Name = format("%s_SecurityGroup", var.mds_name)
     // Resource name
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
   ingress {
     from_port = 257
@@ -139,6 +140,7 @@ resource "aws_network_interface" "external-eni" {
   private_ips_count = var.mds_additional_private_ips
   tags = {
     Name = format("%s-network_interface", var.mds_name)
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 
@@ -157,6 +159,7 @@ resource "aws_eip" "mds_secondary_eip" {
   domain = "vpc"
   tags = {
     Name = format("%s-secondary-eip-%d", var.mds_name, count.index + 1)
+    aws-apn-id = "pc:${module.amis.product_code}"
   }
 }
 
@@ -173,6 +176,9 @@ resource "aws_launch_template" "mds_launch_template" {
   key_name = var.key_name
   image_id = module.amis.ami_id
   description = "Initial launch template version"
+  tags = {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  }
 
   iam_instance_profile {
     name = local.use_role == 1 ? aws_iam_instance_profile.mds_instance_profile[0].id : ""
@@ -198,7 +204,9 @@ resource "aws_instance" "mds-instance" {
 
   tags = merge({
     Name = var.mds_name
-  }, var.instance_tags)
+  }, var.instance_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
 
   ebs_block_device {
     device_name = "/dev/xvda"
@@ -206,6 +214,9 @@ resource "aws_instance" "mds-instance" {
     volume_size = var.volume_size
     encrypted = local.volume_encryption_condition
     kms_key_id = local.volume_encryption_condition ? var.volume_encryption : ""
+    tags = {
+      aws-apn-id = "pc:${module.amis.product_code}"
+    }
   }
 
   user_data = templatefile("${path.module}/mds_userdata.yaml", {
