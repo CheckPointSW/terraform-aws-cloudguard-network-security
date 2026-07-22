@@ -17,10 +17,12 @@ module "launch_vpc" {
   deployment_prefix = var.deployment_prefix
   ip_mode = var.ip_mode
   product_code = module.amis.product_code
+  custom_tags = var.custom_tags
 }
 module "tgw_gwlb"{
   source = "../tgw_gwlb_dual_arm"
 
+  product_code = module.amis.product_code
   vpc_id = module.launch_vpc.vpc_id
   gateways_private_subnets = module.launch_vpc.private_subnets_ids_list
   gateways_public_subnets = module.launch_vpc.public_subnets_ids_list
@@ -84,4 +86,5 @@ module "tgw_gwlb"{
   ip_mode = var.ip_mode
   gateways_security_rules = var.gateways_security_rules
   management_security_rules = var.management_security_rules
+  custom_tags = var.custom_tags
 }

@@ -15,6 +15,7 @@ module "launch_vpc" {
   subnets_bit_length = var.subnets_bit_length
   ip_mode = var.ip_mode
   product_code = module.amis.product_code
+  custom_tags = var.custom_tags
 }
 
 module "gwlb" {
@@ -68,4 +69,5 @@ module "gwlb" {
   volume_type = var.volume_type
   ip_mode = var.ip_mode
   existing_security_group_id = var.existing_security_group_id
+  custom_tags = var.custom_tags
 }

@@ -53,10 +53,10 @@ resource "aws_security_group" "permissive_sg" {
         ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
-  tags = {
+  tags = merge(var.custom_tags, {
     Name = format("%s_PermissiveSecurityGroup", local.asg_name)
     aws-apn-id = "pc:${module.amis.product_code}"
-  }
+  })
 }
 
 resource "aws_launch_template" "asg_launch_template" {
@@ -92,15 +92,17 @@ resource "aws_launch_template" "asg_launch_template" {
   }
   description = "Initial template version"
 
-  // PRM revenue-attribution tag on volumes and network interfaces created at launch
-  // (instances are tagged via the ASG tag block below with propagate_at_launch).
+  // PRM revenue-attribution tag and custom tags on volumes and network interfaces
+  // created at launch (instances are tagged via the ASG tag block below with
+  // propagate_at_launch). Fires when there is a PRM tag and/or custom tags to set.
   dynamic "tag_specifications" {
-    for_each = module.amis.product_code != "" ? toset(["volume", "network-interface"]) : toset([])
+    for_each = module.amis.product_code != "" || length(var.custom_tags) > 0 ? toset(["volume", "network-interface"]) : toset([])
     content {
       resource_type = tag_specifications.value
-      tags = {
-        aws-apn-id = "pc:${module.amis.product_code}"
-      }
+      tags = merge(
+        var.custom_tags,
+        module.amis.product_code != "" ? { aws-apn-id = "pc:${module.amis.product_code}" } : {}
+      )
     }
   }
 
@@ -147,6 +149,15 @@ resource "aws_autoscaling_group" "asg" {
 
   dynamic "tag" {
     for_each = var.instances_tags
+    content {
+      key = tag.key
+      value = tag.value
+      propagate_at_launch = true
+    }
+  }
+
+  dynamic "tag" {
+    for_each = var.custom_tags
     content {
       key = tag.key
       value = tag.value

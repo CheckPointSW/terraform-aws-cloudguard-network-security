@@ -319,6 +319,11 @@ variable "management_security_rules" {
   }))
   default = []
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (GWLBe/management/TGW-attachment subnets and route tables, VPC endpoints) and to the dual-arm Gateway Load Balancer resources it deploys. Note: the second network interface and Elastic IP attached at runtime by the dual-arm Lambda are not covered."
+  default = {}
+}
 variable "existing_security_group_id" {
   type = string
   description = "(Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created"
@@ -327,4 +332,9 @@ variable "existing_security_group_id" {
     condition     = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id))
     error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
   }
+}
+variable "product_code" {
+  type = string
+  description = "AWS Marketplace product code for PRM resource tagging (applied as aws-apn-id = pc:<product_code>). Pass only the code, without the 'pc:' prefix; leave empty to disable PRM tagging."
+  default = ""
 }

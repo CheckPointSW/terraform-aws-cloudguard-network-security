@@ -1,4 +1,7 @@
 locals {
+  // PRM revenue-attribution tag (aws-apn-id = pc:<product_code>); empty when no product code.
+  prm_tags = var.product_code != "" ? { "aws-apn-id" = "pc:${var.product_code}" } : {}
+
 
   regex_valid_gateway_sic_key = "^[a-zA-Z0-9]{8,}$"
   // Will fail if var.gateway_SIC_Key is invalid

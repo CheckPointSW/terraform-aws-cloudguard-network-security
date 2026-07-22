@@ -278,3 +278,8 @@ variable "existing_security_group_id" {
     error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
   }
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this deployment (the VPC infrastructure and the Auto Scaling Group / Gateway Load Balancer / Transit Gateway resources)."
+  default = {}
+}

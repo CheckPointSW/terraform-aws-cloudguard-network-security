@@ -277,3 +277,8 @@ variable "existing_security_group_id" {
     error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
   }
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by the dual-arm Gateway Load Balancer module (the load balancer, target group, listener, VPC endpoint service, and the Auto Scaling Group resources). Note: the second network interface and Elastic IP attached at runtime by the dual-arm Lambda are not covered by this input."
+  default = {}
+}

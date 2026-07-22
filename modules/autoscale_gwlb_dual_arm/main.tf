@@ -53,10 +53,10 @@ resource "aws_security_group" "permissive_sg" {
         ipv6_cidr_blocks = local.ipv6_enabled ? ["::/0"] : []
     }
   }
-  tags = {
+  tags = merge(var.custom_tags, {
     Name = format("%s_PermissiveSecurityGroup", local.asg_name)
     aws-apn-id = "pc:${module.amis.product_code}"
-  }
+  })
 }
 
 resource "aws_launch_template" "asg_launch_template" {
@@ -75,22 +75,23 @@ resource "aws_launch_template" "asg_launch_template" {
 
   tag_specifications {
     resource_type = "network-interface"
-    tags = {
+    tags = merge(var.custom_tags, {
       x-chkp-anti-spoofing = "false"
       aws-apn-id = "pc:${module.amis.product_code}"
-    }
+    })
   }
 
-  // PRM revenue-attribution tag on volumes created at launch
+  // PRM revenue-attribution tag and custom tags on volumes created at launch
   // (instances are tagged via the ASG tag block below with propagate_at_launch;
   // the second ENI and EIP attached at runtime are tagged by the dual-arm Lambda).
   dynamic "tag_specifications" {
-    for_each = module.amis.product_code != "" ? toset(["volume"]) : toset([])
+    for_each = module.amis.product_code != "" || length(var.custom_tags) > 0 ? toset(["volume"]) : toset([])
     content {
       resource_type = tag_specifications.value
-      tags = {
-        aws-apn-id = "pc:${module.amis.product_code}"
-      }
+      tags = merge(
+        var.custom_tags,
+        module.amis.product_code != "" ? { aws-apn-id = "pc:${module.amis.product_code}" } : {}
+      )
     }
   }
 
@@ -177,6 +178,15 @@ resource "aws_autoscaling_group" "asg" {
 
   dynamic "tag" {
     for_each = var.instances_tags
+    content {
+      key = tag.key
+      value = tag.value
+      propagate_at_launch = true
+    }
+  }
+
+  dynamic "tag" {
+    for_each = var.custom_tags
     content {
       key = tag.key
       value = tag.value
