@@ -118,6 +118,7 @@ module "example_module" {
 | ipam_pool_id                           | (Optional) The ID of an IPAM pool to allocate Elastic IPs from. If not provided, EIPs will be allocated from Amazon's pool of public IPv4 addresses.                          | string       | **Default:** ""                                                                                               |
 | gateway_security_rules | List of security rules for ingress and egress.                                                         | list(object({<br/>    direction   = string    <br/>from_port   = any    <br/>to_port     = any <br/>protocol    = any <br/>cidr_blocks = list(any)<br/>}))         | **Default:** []|
 | existing_security_group_id             | (Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created              | string       | **Default:** ""                                                                                               |
+| custom_tags | (Optional) A map of custom tags as key-value pairs. All tags are added to every resource created by this module (Auto Scaling Group instances, volumes, network interfaces, and the security group). Merged with the module's tags; on a key conflict the module's PRM (aws-apn-id) and functional Check Point tags take precedence over custom_tags. | map(string) | **Default:** `{}` |
 
 
 ## Outputs

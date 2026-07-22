@@ -17,11 +17,11 @@ module "gateway_load_balancer" {
   internal = true
 
   security_groups = []
-  tags = {
+  tags = merge(var.custom_tags, {
     x-chkp-management = var.management_server
     x-chkp-template = var.configuration_template
     aws-apn-id = "pc:${module.amis.product_code}"
-  }
+  })
   vpc_id = var.vpc_id
   load_balancer_protocol = "GENEVE"
   target_group_port = 6081
@@ -38,10 +38,10 @@ depends_on = [module.gateway_load_balancer]
   gateway_load_balancer_arns = module.gateway_load_balancer[*].load_balancer_arn
   acceptance_required        = var.connection_acceptance_required
   supported_ip_address_types = var.ip_mode != "IPv4" ? ["ipv4", "ipv6"] : ["ipv4"]
-  tags = {
+  tags = merge(var.custom_tags, {
     "Name" = "gwlb-endpoint-service-${var.gateway_load_balancer_name}"
     aws-apn-id = "pc:${module.amis.product_code}"
-  }
+  })
 }
 
 module "autoscale_gwlb" {
@@ -74,6 +74,7 @@ module "autoscale_gwlb" {
   volume_type = var.volume_type
   ip_mode = var.ip_mode
   existing_security_group_id = var.existing_security_group_id
+  custom_tags = var.custom_tags
 }
 
 data "aws_region" "current"{}

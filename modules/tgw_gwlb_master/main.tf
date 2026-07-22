@@ -20,10 +20,12 @@ module "launch_vpc" {
   // for outbound connectivity. The per-AZ public route tables are exposed via
   // module.launch_vpc.public_subnet_rtbs.
   create_public_subnet_default_igw_route = var.allocate_public_IP
+  custom_tags = var.custom_tags
 }
 module "tgw_gwlb"{
   source = "../tgw_gwlb"
-  
+
+  product_code = module.amis.product_code
   vpc_id = module.launch_vpc.vpc_id
   gateways_subnets = module.launch_vpc.public_subnets_ids_list
   number_of_AZs = var.number_of_AZs
@@ -88,4 +90,5 @@ module "tgw_gwlb"{
   gateways_addresses = var.gateways_addresses
 
   volume_type = var.volume_type
+  custom_tags = var.custom_tags
 }

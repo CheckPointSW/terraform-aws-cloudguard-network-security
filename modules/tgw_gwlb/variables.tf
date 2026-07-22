@@ -329,3 +329,13 @@ variable "existing_security_group_id" {
   }
 }
 
+variable "product_code" {
+  type = string
+  description = "AWS Marketplace product code for PRM resource tagging (applied as aws-apn-id = pc:<product_code>). Pass only the code, without the 'pc:' prefix; leave empty to disable PRM tagging."
+  default = ""
+}
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (GWLBe/NAT/TGW-attachment subnets and route tables, VPC endpoints, NAT gateways, Elastic IPs) and to the Gateway Load Balancer resources it deploys."
+  default = {}
+}

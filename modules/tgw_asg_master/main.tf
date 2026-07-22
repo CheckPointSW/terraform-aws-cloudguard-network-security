@@ -16,6 +16,7 @@ module "launch_vpc" {
   private_subnets_map = {}
   subnets_bit_length = var.subnets_bit_length
   product_code = module.amis.product_code
+  custom_tags = var.custom_tags
 }
 
 module "launch_tgw_asg_into_vpc" {
@@ -54,4 +55,5 @@ module "launch_tgw_asg_into_vpc" {
   control_gateway_over_public_or_private_address = var.control_gateway_over_public_or_private_address
   management_server = var.management_server
   configuration_template = var.configuration_template
+  custom_tags = var.custom_tags
 }

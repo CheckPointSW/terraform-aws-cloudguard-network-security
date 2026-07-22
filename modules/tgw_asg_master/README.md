@@ -135,6 +135,7 @@ module "example_module" {
 | configuration_template                    | (Optional) Security Gateway configuration template                                                                              | string       | **Default:** TGW-ASG-configuration                                                           |
 | gateway_maintenance_mode_password_hash    | Maintenance-mode password hash                                                                                                  | string       |                                                                                                    |
 | management_maintenance_mode_password_hash | Maintenance-mode password hash for the Security Management Server                                                              | string       |                                                                                                    |
+| custom_tags | (Optional) A map of custom tags as key-value pairs. All tags are added to every resource created by this deployment (the VPC infrastructure and the ASG / GWLB / TGW resources). Merged with the module's tags; on a key conflict the module's PRM (aws-apn-id) and functional Check Point tags take precedence over custom_tags. | map(string) | **Default:** `{}` |
 
 
 ## Outputs

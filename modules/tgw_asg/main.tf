@@ -24,6 +24,7 @@ module "autoscale" {
   management_server =  var.management_server
   configuration_template = var.configuration_template
   existing_security_group_id = var.existing_security_group_id
+  custom_tags = var.custom_tags
 }
 
 data "aws_region" "current"{}

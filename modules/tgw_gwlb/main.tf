@@ -3,10 +3,10 @@ resource "aws_subnet" "gwlbe_subnet1" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 0)
   cidr_block = var.gwlbe_subnet_1_cidr
-  tags = {
+  tags = merge({
     Name = "GWLBe subnet 1"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "gwlbe_subnet1_rtb" {
   vpc_id = var.vpc_id
@@ -14,10 +14,10 @@ resource "aws_route_table" "gwlbe_subnet1_rtb" {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway1.id
   }
-  tags = {
+  tags = merge({
     Name = "GWLBe Subnet 1 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "gwlbe_subnet1_rtb_assoc" {
   subnet_id      = aws_subnet.gwlbe_subnet1.id
@@ -29,10 +29,10 @@ resource "aws_subnet" "gwlbe_subnet2" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 1)
   cidr_block = var.gwlbe_subnet_2_cidr
-  tags = {
+  tags = merge({
     Name = "GWLBe subnet 2"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "gwlbe_subnet2_rtb" {
   vpc_id = var.vpc_id
@@ -40,10 +40,10 @@ resource "aws_route_table" "gwlbe_subnet2_rtb" {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway2.id
   }
-  tags = {
+  tags = merge({
     Name = "GWLBe Subnet 2 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "gwlbe_subnet2_rtb_assoc" {
   subnet_id      = aws_subnet.gwlbe_subnet2.id
@@ -56,10 +56,10 @@ resource "aws_subnet" "gwlbe_subnet3" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 2)
   cidr_block = var.gwlbe_subnet_3_cidr
-  tags = {
+  tags = merge({
     Name = "GWLBe subnet 3"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "gwlbe_subnet3_rtb" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -68,10 +68,10 @@ resource "aws_route_table" "gwlbe_subnet3_rtb" {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway3[0].id
   }
-  tags = {
+  tags = merge({
     Name = "GWLBe Subnet 3 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "gwlbe_subnet3_rtb_assoc" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -85,10 +85,10 @@ resource "aws_subnet" "gwlbe_subnet4" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 3)
   cidr_block = var.gwlbe_subnet_4_cidr
-  tags = {
+  tags = merge({
     Name = "GWLBe subnet 4"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "gwlbe_subnet4_rtb" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -97,10 +97,10 @@ resource "aws_route_table" "gwlbe_subnet4_rtb" {
     cidr_block = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gateway4[0].id
   }
-  tags = {
+  tags = merge({
     Name = "GWLBe Subnet 4 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "gwlbe_subnet4_rtb_assoc" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -115,10 +115,10 @@ resource "aws_subnet" "nat_gw_subnet1" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 0)
   cidr_block = var.nat_gw_subnet_1_cidr
-  tags = {
+  tags = merge({
     Name = "NAT subnet 1"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "nat_gw_subnet1_rtb" {
   vpc_id = var.vpc_id
@@ -126,10 +126,10 @@ resource "aws_route_table" "nat_gw_subnet1_rtb" {
     cidr_block = "0.0.0.0/0"
     gateway_id = var.internet_gateway_id
   }
-  tags = {
+  tags = merge({
     Name = "NAT Subnet 1 Route Table"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "nat_gw_subnet1_rtb_assoc" {
   subnet_id      = aws_subnet.nat_gw_subnet1.id
@@ -140,10 +140,10 @@ resource "aws_subnet" "nat_gw_subnet2" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 1)
   cidr_block = var.nat_gw_subnet_2_cidr
-  tags = {
+  tags = merge({
     Name = "NAT subnet 2"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "nat_gw_subnet2_rtb" {
   vpc_id = var.vpc_id
@@ -151,10 +151,10 @@ resource "aws_route_table" "nat_gw_subnet2_rtb" {
     cidr_block = "0.0.0.0/0"
     gateway_id = var.internet_gateway_id
   }
-  tags = {
+  tags = merge({
     Name = "NAT Subnet 2 Route Table"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "nat_gw_subnet2_rtb_assoc" {
   subnet_id      = aws_subnet.nat_gw_subnet2.id
@@ -166,10 +166,10 @@ resource "aws_subnet" "nat_gw_subnet3" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 2)
   cidr_block = var.nat_gw_subnet_3_cidr
-  tags = {
+  tags = merge({
     Name = "NAT subnet 3"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "nat_gw_subnet3_rtb" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -178,10 +178,10 @@ resource "aws_route_table" "nat_gw_subnet3_rtb" {
     cidr_block = "0.0.0.0/0"
     gateway_id = var.internet_gateway_id
   }
-  tags = {
+  tags = merge({
     Name = "NAT Subnet 3 Route Table"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "nat_gw_subnet3_rtb_assoc" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -194,10 +194,10 @@ resource "aws_subnet" "nat_gw_subnet4" {
   vpc_id = var.vpc_id
   availability_zone = element(var.availability_zones, 3)
   cidr_block = var.nat_gw_subnet_4_cidr
-  tags = {
+  tags = merge({
     Name = "NAT subnet 4"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table" "nat_gw_subnet4_rtb" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -206,10 +206,10 @@ resource "aws_route_table" "nat_gw_subnet4_rtb" {
     cidr_block = "0.0.0.0/0"
     gateway_id = var.internet_gateway_id
   }
-  tags = {
+  tags = merge({
     Name = "NAT Subnet 4 Route Table"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "nat_gw_subnet4_rtb_assoc" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -268,6 +268,7 @@ module "gwlb" {
 
   volume_type = var.volume_type
   existing_security_group_id = var.existing_security_group_id
+  custom_tags = var.custom_tags
 }
 
 resource "aws_vpc_endpoint" "gwlb_endpoint1" {
@@ -276,9 +277,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint1" {
   vpc_endpoint_type = "GatewayLoadBalancer"
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet1[*].id
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint1"
-  }
+  }, var.custom_tags)
 }
 resource "aws_vpc_endpoint" "gwlb_endpoint2" {
   depends_on = [module.gwlb, aws_subnet.gwlbe_subnet2]
@@ -286,9 +287,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint2" {
   vpc_endpoint_type = "GatewayLoadBalancer"
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet2[*].id
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint2"
-  }
+  }, var.custom_tags)
 }
 resource "aws_vpc_endpoint" "gwlb_endpoint3" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -297,9 +298,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint3" {
   vpc_endpoint_type = "GatewayLoadBalancer"
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet3[*].id
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint3"
-  }
+  }, var.custom_tags)
 }
 resource "aws_vpc_endpoint" "gwlb_endpoint4" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -308,9 +309,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint4" {
   vpc_endpoint_type = "GatewayLoadBalancer"
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet4[*].id
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint4"
-  }
+  }, var.custom_tags)
 }
 
 
@@ -320,10 +321,10 @@ resource "aws_route_table" "tgw_attachment_subnet1_rtb" {
     cidr_block = "0.0.0.0/0"
     vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint1.id
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 1 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "tgw_attachment1_rtb_assoc" {
   subnet_id      = var.transit_gateway_attachment_subnet_1_id
@@ -335,10 +336,10 @@ resource "aws_route_table" "tgw_attachment_subnet2_rtb" {
     cidr_block = "0.0.0.0/0"
     vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint2.id
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 2 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "tgw_attachment2_rtb_assoc" {
   subnet_id      = var.transit_gateway_attachment_subnet_2_id
@@ -351,10 +352,10 @@ resource "aws_route_table" "tgw_attachment_subnet3_rtb" {
     cidr_block = "0.0.0.0/0"
     vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint3[0].id
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 3 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "tgw_attachment3_rtb_assoc" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -368,10 +369,10 @@ resource "aws_route_table" "tgw_attachment_subnet4_rtb" {
     cidr_block = "0.0.0.0/0"
     vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint4[0].id
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 4 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 resource "aws_route_table_association" "tgw_attachment4_rtb_assoc" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -381,14 +382,18 @@ resource "aws_route_table_association" "tgw_attachment4_rtb_assoc" {
 
 
 resource "aws_eip" "nat_gw_public_address1" {
+  tags = merge(var.custom_tags, local.prm_tags)
 }
 resource "aws_eip" "nat_gw_public_address2" {
+  tags = merge(var.custom_tags, local.prm_tags)
 }
 resource "aws_eip" "nat_gw_public_address3" {
   count = var.number_of_AZs >= 3 ? 1 : 0
+  tags = merge(var.custom_tags, local.prm_tags)
 }
 resource "aws_eip" "nat_gw_public_address4" {
   count = var.number_of_AZs >= 4 ? 1 : 0
+  tags = merge(var.custom_tags, local.prm_tags)
 }
 
 resource "aws_nat_gateway" "nat_gateway1" {
@@ -396,18 +401,18 @@ resource "aws_nat_gateway" "nat_gateway1" {
   allocation_id = aws_eip.nat_gw_public_address1.id
   subnet_id     = aws_subnet.nat_gw_subnet1.id
 
-  tags = {
+  tags = merge({
     Name = "NatGW1"
-  }
+  }, var.custom_tags)
 }
 resource "aws_nat_gateway" "nat_gateway2" {
   depends_on = [aws_subnet.nat_gw_subnet2, aws_eip.nat_gw_public_address2]
   allocation_id = aws_eip.nat_gw_public_address2.id
   subnet_id     = aws_subnet.nat_gw_subnet2.id
 
-  tags = {
+  tags = merge({
     Name = "NatGW2"
-  }
+  }, var.custom_tags)
 }
 resource "aws_nat_gateway" "nat_gateway3" {
   count = var.number_of_AZs >= 3 ? 1 :0
@@ -415,9 +420,9 @@ resource "aws_nat_gateway" "nat_gateway3" {
   allocation_id = aws_eip.nat_gw_public_address3[0].id
   subnet_id     = aws_subnet.nat_gw_subnet3[0].id
 
-  tags = {
+  tags = merge({
     Name = "NatGW3"
-  }
+  }, var.custom_tags)
 }
 resource "aws_nat_gateway" "nat_gateway4" {
   count = var.number_of_AZs >= 4 ? 1 :0
@@ -425,7 +430,7 @@ resource "aws_nat_gateway" "nat_gateway4" {
   allocation_id = aws_eip.nat_gw_public_address4[0].id
   subnet_id     = aws_subnet.nat_gw_subnet4[0].id
 
-  tags = {
+  tags = merge({
     Name = "NatGW4"
-  }
+  }, var.custom_tags)
 }

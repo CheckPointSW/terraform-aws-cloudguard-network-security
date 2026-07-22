@@ -3,6 +3,9 @@ data "aws_vpc" "vpc" {
 }
 
 locals {
+  // PRM revenue-attribution tag (aws-apn-id = pc:<product_code>); empty when no product code.
+  prm_tags = var.product_code != "" ? { "aws-apn-id" = "pc:${var.product_code}" } : {}
+
   # Note: For dual-arm solutions, IPv4 is always enabled (IPv4 or DualStack modes)
   ipv6_enabled = var.ip_mode == "DualStack"
 }
@@ -19,10 +22,10 @@ resource "aws_subnet" "gwlbe_subnet1" {
   assign_ipv6_address_on_creation = local.ipv6_enabled && data.aws_vpc.vpc.ipv6_cidr_block != ""
   enable_resource_name_dns_a_record_on_launch    = true
   enable_resource_name_dns_aaaa_record_on_launch = false
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-GWLBe subnet 1" : "GWLBe subnet 1"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 
@@ -38,10 +41,10 @@ resource "aws_subnet" "gwlbe_subnet2" {
   assign_ipv6_address_on_creation = local.ipv6_enabled && data.aws_vpc.vpc.ipv6_cidr_block != ""
   enable_resource_name_dns_a_record_on_launch    = true
   enable_resource_name_dns_aaaa_record_on_launch = false
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-GWLBe subnet 2" : "GWLBe subnet 2"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 
@@ -58,10 +61,10 @@ resource "aws_subnet" "gwlbe_subnet3" {
   assign_ipv6_address_on_creation = local.ipv6_enabled && data.aws_vpc.vpc.ipv6_cidr_block != ""
   enable_resource_name_dns_a_record_on_launch    = true
   enable_resource_name_dns_aaaa_record_on_launch = false
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-GWLBe subnet 3" : "GWLBe subnet 3"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 
@@ -78,10 +81,10 @@ resource "aws_subnet" "gwlbe_subnet4" {
   assign_ipv6_address_on_creation = local.ipv6_enabled && data.aws_vpc.vpc.ipv6_cidr_block != ""
   enable_resource_name_dns_a_record_on_launch    = true
   enable_resource_name_dns_aaaa_record_on_launch = false
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-GWLBe subnet 4" : "GWLBe subnet 4"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 # Creates the Management subnet
@@ -97,20 +100,20 @@ resource "aws_subnet" "management_subnet" {
   enable_resource_name_dns_a_record_on_launch    = true
   enable_resource_name_dns_aaaa_record_on_launch = false
   map_public_ip_on_launch = true
-  tags = {
+  tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-Management subnet" : "Management subnet"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 # Route table for Private Subnets
 # This route table is dedicated to private subnets, separate from GWLBe subnets
 resource "aws_route_table" "private_subnets_rtb" {
   vpc_id = var.vpc_id
-  tags = {
+  tags = merge({
     Name = "Private Subnets Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 # Associates private subnets with their dedicated route table
@@ -124,10 +127,10 @@ resource "aws_route_table_association" "private_subnets_rtb_assoc" {
 # This route table is dedicated to GWLB endpoint subnets, separate from private subnets
 resource "aws_route_table" "gwlbe_subnets_rtb" {
   vpc_id = var.vpc_id
-  tags = {
+  tags = merge({
     Name = "GWLBe Subnets Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 # Associates GWLBe subnet 1 with the dedicated GWLBe route table
@@ -160,10 +163,10 @@ resource "aws_route_table_association" "gwlbe_subnet4_rtb_assoc" {
 # Routes management traffic directly to Internet Gateway for external access
 resource "aws_route_table" "management_subnet_rtb" {
   vpc_id = var.vpc_id
-  tags = {
+  tags = merge({
     Name = "Management Subnet Route Table"
     Network = "Public"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 
 # Default route to Internet Gateway for management subnet
@@ -242,6 +245,7 @@ module "gwlb" {
   gateways_security_rules = var.gateways_security_rules
   management_security_rules = var.management_security_rules
   existing_security_group_id = var.existing_security_group_id
+  custom_tags = var.custom_tags
 }
 
 # Creates the first Gateway Load Balancer VPC Endpoint
@@ -254,9 +258,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint1" {
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet1[*].id
   ip_address_type = var.ip_mode == "DualStack" ? "dualstack" : "ipv4"
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint1"
-  }
+  }, var.custom_tags)
 }
 # Creates the second Gateway Load Balancer VPC Endpoint
 # Provides high availability and load distribution for traffic inspection in the second AZ
@@ -268,9 +272,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint2" {
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet2[*].id
   ip_address_type = var.ip_mode == "DualStack" ? "dualstack" : "ipv4"
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint2"
-  }
+  }, var.custom_tags)
 }
 # Creates the third Gateway Load Balancer VPC Endpoint (conditional)
 # Only created when 3 or more AZs are specified to extend security inspection to the third AZ
@@ -283,9 +287,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint3" {
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet3[*].id
   ip_address_type = var.ip_mode == "DualStack" ? "dualstack" : "ipv4"
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint3"
-  }
+  }, var.custom_tags)
 }
 # Creates the fourth Gateway Load Balancer VPC Endpoint (conditional)
 # Only created when 4 or more AZs are specified for maximum availability security inspection
@@ -298,9 +302,9 @@ resource "aws_vpc_endpoint" "gwlb_endpoint4" {
   service_name = module.gwlb.gwlb_service_name
   subnet_ids = aws_subnet.gwlbe_subnet4[*].id
   ip_address_type = var.ip_mode == "DualStack" ? "dualstack" : "ipv4"
-  tags = {
+  tags = merge({
     "Name" = "gwlb_endpoint4"
-  }
+  }, var.custom_tags)
 }
 
 # Route table for Transit Gateway attachment subnet 1 - redirects traffic through GWLB endpoint
@@ -319,10 +323,10 @@ resource "aws_route_table" "tgw_attachment_subnet1_rtb" {
       vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint1.id
     }
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 1 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 # Associates the TGW attachment subnet 1 with its route table
 # Links the first TGW attachment subnet to force traffic through the GWLB endpoint
@@ -346,10 +350,10 @@ resource "aws_route_table" "tgw_attachment_subnet2_rtb" {
       vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint2.id
     }
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 2 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 # Associates the TGW attachment subnet 2 with its route table
 # Links the second TGW attachment subnet to ensure traffic inspection through GWLB
@@ -374,10 +378,10 @@ resource "aws_route_table" "tgw_attachment_subnet3_rtb" {
       vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint3[0].id
     }
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 3 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 # Associates the TGW attachment subnet 3 with its route table (conditional)
 # Links the third TGW attachment subnet to its GWLB endpoint route table when deployed
@@ -403,10 +407,10 @@ resource "aws_route_table" "tgw_attachment_subnet4_rtb" {
       vpc_endpoint_id = aws_vpc_endpoint.gwlb_endpoint4[0].id
     }
   }
-  tags = {
+  tags = merge({
     Name = "TGW Attachment Subnet 4 Route Table"
     Network = "Private"
-  }
+  }, var.custom_tags, local.prm_tags)
 }
 # Associates the TGW attachment subnet 4 with its route table (conditional)
 # Links the fourth TGW attachment subnet to its GWLB endpoint route table for complete coverage

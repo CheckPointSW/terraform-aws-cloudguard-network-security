@@ -195,3 +195,8 @@ variable "ip_mode" {
     error_message = "The ip_mode value must be one of: IPv4 or DualStack."
   }
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this deployment (the VPC infrastructure and the Auto Scaling Group / Gateway Load Balancer / Transit Gateway resources)."
+  default = {}
+}

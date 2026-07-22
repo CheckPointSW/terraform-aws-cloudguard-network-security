@@ -5,13 +5,13 @@ resource "aws_vpc" "vpc" {
 
   tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-VPC" : "VPC"
-  }, local.prm_tags)
+  }, local.all_tags)
 }
 
 // --- Internet Gateway ---
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
-  tags = local.prm_tags
+  tags = local.all_tags
 }
 
 // --- Public Subnets ---
@@ -32,7 +32,7 @@ resource "aws_subnet" "public_subnets" {
 
   tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Public subnet %s", var.deployment_prefix, each.value) : format("Public subnet %s", each.value)
-  }, local.prm_tags)
+  }, local.all_tags)
 }
 
 // --- Private Subnets ---
@@ -52,7 +52,7 @@ resource "aws_subnet" "private_subnets" {
 
   tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Private subnet %s", var.deployment_prefix, each.value) : format("Private subnet %s", each.value)
-  }, local.prm_tags)
+  }, local.all_tags)
 }
 
 // --- tgw Subnets ---
@@ -72,7 +72,7 @@ resource "aws_subnet" "tgw_subnets" {
 
   tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-tgw subnet %s", var.deployment_prefix, each.value) : format("tgw subnet %s", each.value)
-  }, local.prm_tags)
+  }, local.all_tags)
 }
 
 
@@ -87,7 +87,7 @@ resource "aws_route_table" "public_subnet_rtb" {
   vpc_id = aws_vpc.vpc.id
   tags = merge({
     Name = var.deployment_prefix != "" ? format("%s-Public subnet %s Route Table", var.deployment_prefix, each.value) : format("Public subnet %s Route Table", each.value)
-  }, local.prm_tags)
+  }, local.all_tags)
 }
 resource "aws_route" "vpc_internet_access" {
   for_each = var.create_public_subnet_default_igw_route && local.ipv4_enabled ? var.public_subnets_map : {}

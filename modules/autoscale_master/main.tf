@@ -15,6 +15,7 @@ module "launch_vpc" {
   subnets_bit_length = var.subnets_bit_length
   ip_mode = var.ip_mode
   product_code = module.amis.product_code
+  custom_tags = var.custom_tags
 }
 
 module "launch_autoscale_into_vpc" {
@@ -58,4 +59,5 @@ module "launch_autoscale_into_vpc" {
   // --- Security Rules ---
   security_rules = var.security_rules
   ip_mode = var.ip_mode
+  custom_tags = var.custom_tags
 }

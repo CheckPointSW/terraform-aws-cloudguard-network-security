@@ -35,6 +35,11 @@ variable "instances_tags" {
   description = "(Optional) A map of tags as key=value pairs. All tags will be added on all Auto Scaling Group instances"
   default = {}
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by the Auto Scaling Group (instances, volumes, network interfaces, and the security group)."
+  default = {}
+}
 variable "metadata_imdsv2_required" {
   type = bool
   description = "Set true to deploy the instance with metadata v2 token required"

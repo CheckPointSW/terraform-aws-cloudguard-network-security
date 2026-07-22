@@ -44,3 +44,8 @@ variable "product_code" {
   description = "(Optional) AWS Marketplace product code used for PRM resource tagging (aws-apn-id = pc:<product_code>). Leave empty to skip PRM tagging of VPC infrastructure."
   default = ""
 }
+variable "custom_tags" {
+  type = map(string)
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (VPC, subnets, route tables, internet gateway)."
+  default = {}
+}
