@@ -24,6 +24,7 @@ module "launch_mds_into_vpc" {
 
   vpc_id = module.launch_vpc.vpc_id
   subnet_id = module.launch_vpc.public_subnets_ids_list[0]
+  custom_ami = var.custom_ami
   mds_additional_private_ips = var.mds_additional_private_ips
   mds_allocate_and_associate_eip_for_private_ips = var.mds_allocate_and_associate_eip_for_private_ips
 

@@ -177,3 +177,13 @@ variable "ip_mode" {
     error_message = "The ip_mode value must be one of: IPv4 or DualStack."
   }
 }
+
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id to deploy. When empty, the AMI is resolved from amis.yaml by region and standalone_version"
+  default = ""
+  validation {
+    condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
+    error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
+}

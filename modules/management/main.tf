@@ -4,6 +4,7 @@ module "amis" {
 
   version_license = var.management_version
   chkp_type = "management"
+  custom_ami = var.custom_ami
 }
 
 resource "aws_security_group" "management_sg" {

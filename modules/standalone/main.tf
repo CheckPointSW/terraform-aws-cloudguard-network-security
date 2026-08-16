@@ -3,6 +3,7 @@ module "amis" {
 
   version_license = var.standalone_version
   chkp_type = "standalone"
+  custom_ami = var.custom_ami
 }
 
 module "common_permissive_sg" {
