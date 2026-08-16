@@ -3,6 +3,7 @@ module "amis" {
 
   version_license = var.gateway_version
   chkp_type = "gateway"
+  custom_ami = var.custom_ami
 }
 
 module "common_permissive_sg" {

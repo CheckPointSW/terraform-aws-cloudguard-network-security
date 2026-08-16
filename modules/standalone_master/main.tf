@@ -54,6 +54,7 @@ module "launch_standalone_into_vpc" {
   metadata_imdsv2_required = var.metadata_imdsv2_required
   instance_tags = var.instance_tags
   standalone_version = var.standalone_version
+  custom_ami = var.custom_ami
   admin_shell = var.admin_shell
   standalone_password_hash = var.standalone_password_hash
   standalone_maintenance_mode_password_hash = var.standalone_maintenance_mode_password_hash

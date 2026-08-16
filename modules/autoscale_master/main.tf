@@ -43,6 +43,7 @@ module "launch_autoscale_into_vpc" {
 
   // --- Check Point Settings ---
   gateway_version = var.gateway_version
+  custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash
   gateway_maintenance_mode_password_hash = var.gateway_maintenance_mode_password_hash
   gateway_SICKey = var.gateway_SICKey

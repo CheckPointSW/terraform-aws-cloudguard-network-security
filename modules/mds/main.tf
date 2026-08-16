@@ -4,6 +4,7 @@ module "amis" {
 
   version_license = var.mds_version
   chkp_type = "mds"
+  custom_ami = var.custom_ami
 }
 
 resource "aws_security_group" "mds_sg" {

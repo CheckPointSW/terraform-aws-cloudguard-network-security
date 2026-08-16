@@ -52,6 +52,7 @@ module "launch_gateway_into_vpc" {
   metadata_imdsv2_required = var.metadata_imdsv2_required
   instance_tags = var.instance_tags
   gateway_version = var.gateway_version
+  custom_ami = var.custom_ami
   admin_shell = var.admin_shell
   gateway_SICKey = var.gateway_SICKey
   gateway_password_hash = var.gateway_password_hash

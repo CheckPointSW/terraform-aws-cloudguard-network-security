@@ -36,6 +36,7 @@ module "launch_tgw_asg_into_vpc" {
   gateways_min_group_size = var.gateways_min_group_size
   gateways_max_group_size = var.gateways_max_group_size
   gateway_version = var.gateway_version
+  custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash
   gateway_maintenance_mode_password_hash = var.gateway_maintenance_mode_password_hash
   gateway_SICKey = var.gateway_SICKey

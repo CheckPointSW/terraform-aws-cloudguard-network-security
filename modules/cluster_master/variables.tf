@@ -180,3 +180,13 @@ variable "security_rules" {
   }))
   default = []
 }
+
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id to deploy. When empty, the AMI is resolved from amis.yaml by region and gateway_version"
+  default = ""
+  validation {
+    condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
+    error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
+}

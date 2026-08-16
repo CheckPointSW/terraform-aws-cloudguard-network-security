@@ -217,3 +217,13 @@ variable "existing_security_group_id" {
     error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
   }
 }
+
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id to deploy. When empty, the AMI is resolved from amis.yaml by region and gateway_version"
+  default = ""
+  validation {
+    condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
+    error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
+}

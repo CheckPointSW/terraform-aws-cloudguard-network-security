@@ -17,6 +17,7 @@ module "cluster_into_vpc" {
   instance_tags = var.instance_tags
   predefined_role = var.predefined_role
   gateway_version = var.gateway_version
+  custom_ami = var.custom_ami
   admin_shell = var.admin_shell
   gateway_SICKey = var.gateway_SICKey
   gateway_password_hash = var.gateway_password_hash

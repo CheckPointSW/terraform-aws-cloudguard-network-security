@@ -20,10 +20,11 @@ module "launch_vpc" {
 
 module "launch_management_into_vpc" {
   source = "../management"
-  
+
   vpc_id = module.launch_vpc.vpc_id
   subnet_id = module.launch_vpc.public_subnets_ids_list[0]
-  
+  custom_ami = var.custom_ami
+
   // --- EC2 Instance Configuration ---
   management_name = var.management_name
   management_instance_type = var.management_instance_type

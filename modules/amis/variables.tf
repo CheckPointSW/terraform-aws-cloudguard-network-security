@@ -24,3 +24,12 @@ variable "version_license" {
   description = "Version and license"
 }
 
+// --- Custom AMI ---
+// When set (non-empty), this AMI id is used as-is and the amis.yaml
+// region/version lookup is bypassed.
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id. Bypasses the amis.yaml region/version lookup when non-empty"
+  default = ""
+}
+

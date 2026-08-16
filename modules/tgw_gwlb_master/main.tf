@@ -70,6 +70,7 @@ module "tgw_gwlb"{
   minimum_group_size = var.minimum_group_size
   maximum_group_size = var.maximum_group_size
   gateway_version = var.gateway_version
+  custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash
   gateway_maintenance_mode_password_hash = var.gateway_maintenance_mode_password_hash
   gateway_SICKey = var.gateway_SICKey

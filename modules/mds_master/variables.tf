@@ -6,9 +6,9 @@ variable "vpc_cidr" {
   description = "The CIDR block of the VPC"
   default = "10.0.0.0/16"
 }
-variable "public_subnet_az" {
-  type = string
-  description = "The availability-zone for the public subnet. ( e.g. \"us-east-1a\" )"
+variable "public_subnets_map" {
+  type = map(string)
+  description = "A map of pairs {availability-zone = subnet-suffix-number}. Each entry creates a subnet. Minimum 1 pair.  (e.g. {\"us-east-1a\" = 1} ) "
 }
 variable "mds_additional_private_ips" {
   type = number
@@ -102,7 +102,7 @@ variable "sts_roles" {
 variable "mds_version" {
   type = string
   description = "Multi-Domain Server version and license"
-  default = "R81.20-BYOL"
+  default = "R82-BYOL"
 }
 module "validate_mds_version" {
   source = "../version_license"
@@ -174,7 +174,6 @@ variable "mds_bootstrap_script" {
   description = "(Optional) Semicolon (;) separated commands to run on the initial boot"
   default = ""
 }
-
 variable "security_rules" {
   description = "List of security rules for ingress and egress"
   type        = list(object({
@@ -185,4 +184,23 @@ variable "security_rules" {
     cidr_blocks = list(string)
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode for the Security MDS and AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4, DualStack."
+  }
+}
+
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id to deploy. When empty, the AMI is resolved from amis.yaml by region and mds_version"
+  default = ""
+  validation {
+    condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
+    error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
 }

@@ -23,7 +23,9 @@ locals {
   //  region = "us-east-1"
   //  version_license_key - see above
   //  RESULT: local.ami_id = "ami-1234567"
-  ami_id = local.amis_yaml_regionMap[local.region][local.version_license_value]
+  //  When var.custom_ami is set, it takes precedence over the amis.yaml lookup so
+  //  staging / candidate images can be deployed before publication.
+  ami_id = var.custom_ami != "" ? var.custom_ami : local.amis_yaml_regionMap[local.region][local.version_license_value]
 
   // --- AWS Partner Revenue Measurement (PRM) ---
   // Consuming modules tag revenue-generating resources with

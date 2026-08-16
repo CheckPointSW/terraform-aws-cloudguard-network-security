@@ -96,7 +96,7 @@ variable "sts_roles" {
 variable "mds_version" {
   type = string
   description = "Multi-Domain Server version and license"
-  default = "R81.20-BYOL"
+  default = "R82-BYOL"
 }
 module "validate_mds_version" {
   source = "../version_license"
@@ -178,4 +178,23 @@ variable "security_rules" {
     cidr_blocks = list(string)
   }))
   default = []
+}
+variable "ip_mode" {
+  type = string
+  description = "IP mode for the Security MDS and AWS resources."
+  default = "IPv4"
+  validation {
+    condition     = contains(["IPv4", "DualStack"], var.ip_mode)
+    error_message = "The ip_mode value must be one of: IPv4, DualStack."
+  }
+}
+
+variable "custom_ami" {
+  type = string
+  description = "(Optional) Custom AMI id to deploy. When empty, the AMI is resolved from amis.yaml by region and mds_version"
+  default = ""
+  validation {
+    condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
+    error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
 }

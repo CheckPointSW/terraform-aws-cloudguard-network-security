@@ -2,6 +2,8 @@
 module "amis" {
   source = "../amis"
   version_license = var.gateway_version
+  custom_ami = var.custom_ami
+
 }
 
 resource "aws_security_group" "permissive_sg" {
