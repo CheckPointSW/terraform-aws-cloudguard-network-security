@@ -24,6 +24,7 @@ module "launch_management_into_vpc" {
   vpc_id = module.launch_vpc.vpc_id
   subnet_id = module.launch_vpc.public_subnets_ids_list[0]
   custom_ami = var.custom_ami
+  custom_ami_is_blink = var.custom_ami_is_blink
 
   // --- EC2 Instance Configuration ---
   management_name = var.management_name

@@ -245,6 +245,10 @@ resource "aws_instance" "management-instance" {
     GatewayManagement = var.gateway_management
     BootstrapScript = local.management_bootstrap_script64
     PubMgmt = local.pub_mgmt
+    // A custom_ami bypasses the amis.yaml lookup, so the version-derived
+    // is_blink can disagree with the image actually booted. Let the caller
+    // declare the mode; empty keeps the derived value (CGNSPC-4431).
+    IsBlink = var.custom_ami != "" && var.custom_ami_is_blink != "" ? lower(var.custom_ami_is_blink) == "true" : module.amis.is_blink
 
   })
 }

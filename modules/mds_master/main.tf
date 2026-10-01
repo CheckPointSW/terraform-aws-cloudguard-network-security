@@ -5,6 +5,7 @@ module "amis" {
 
   version_license = var.mds_version
   chkp_type = "mds"
+  primary_mds = var.mds_installation_type == "Primary Multi-Domain Server"
 }
 
 module "launch_vpc" {
@@ -25,6 +26,7 @@ module "launch_mds_into_vpc" {
   vpc_id = module.launch_vpc.vpc_id
   subnet_id = module.launch_vpc.public_subnets_ids_list[0]
   custom_ami = var.custom_ami
+  custom_ami_is_blink = var.custom_ami_is_blink
   mds_additional_private_ips = var.mds_additional_private_ips
   mds_allocate_and_associate_eip_for_private_ips = var.mds_allocate_and_associate_eip_for_private_ips
 

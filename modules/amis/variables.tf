@@ -23,6 +23,12 @@ variable "version_license" {
   type = string
   description = "Version and license"
 }
+// chkp_type = "mds" only.
+variable "primary_mds" {
+  type = bool
+  description = "Whether an mds deployment is a Primary Multi-Domain Server. A secondary MDS or a Multi-Domain Log Server resolves the ISO management image"
+  default = true
+}
 
 // --- Custom AMI ---
 // When set (non-empty), this AMI id is used as-is and the amis.yaml

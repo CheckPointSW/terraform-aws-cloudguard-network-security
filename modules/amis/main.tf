@@ -14,7 +14,17 @@ locals {
 
   //  version_license_value = "R8110PAYGNGTXGW"
 
-  version_license_key_mgmt_gw = format("%s%s", var.version_license, var.chkp_type == "gateway" ? "-GW" : var.chkp_type == "management" ? "-MGMT" : var.chkp_type == "mds" ? "-MGMT" : "")
+  // R81.10 has no blink image and is not expected to get one, and blink
+  // first-time config is certified for a Primary MDS only. A secondary MDS or
+  // an MLM therefore takes the ISO management image too - there is no
+  // non-blink MDS product to fall back to (Azure does the same, CGNSPC-4476).
+  // This is the single condition the AMI key and is_blink both derive from;
+  // the CloudFormation twin spells it UsesIsoMgmtImage.
+  uses_iso_mgmt_image = element(split("-", var.version_license), 0) == "R81.10" || (var.chkp_type == "mds" && !var.primary_mds)
+  mgmt_suffix         = local.uses_iso_mgmt_image ? "-MGMT" : "-MGMT-BLINK"
+  mds_suffix          = local.uses_iso_mgmt_image ? "-MGMT" : "-MDS-BLINK"
+
+  version_license_key_mgmt_gw = format("%s%s", var.version_license, var.chkp_type == "gateway" ? "-GW" : var.chkp_type == "management" ? local.mgmt_suffix : var.chkp_type == "mds" ? local.mds_suffix : "")
   version_license_key = var.chkp_type == "standalone" ? format("%s%s", var.version_license, element(split("-", var.version_license), 1) == "BYOL" ? "-MGMT" : "") : local.version_license_key_mgmt_gw
 
   version_license_value = local.amis_yaml_converterMap[local.version_license_key]["Value"]
