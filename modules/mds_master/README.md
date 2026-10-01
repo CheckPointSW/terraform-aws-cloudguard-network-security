@@ -26,7 +26,7 @@ provider "aws" {}
 
 module "mds_master" {
     source = "CheckPointSW/cloudguard-network-security/aws//modules/mds_master"
-    version = "1.1.1"
+    version = "1.2.1"
 
   // --- VPC Network Configuration ---
   vpc_cidr = "10.0.0.0/16"

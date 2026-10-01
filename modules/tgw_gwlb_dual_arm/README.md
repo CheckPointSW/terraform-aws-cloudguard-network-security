@@ -44,7 +44,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//modules/tgw_gwlb_dual_arm"
-    version = "1.1.1"
+    version = "1.2.1"
 
     // --- VPC Network Configuration ---
     vpc_id = "vpc-12345678"

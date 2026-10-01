@@ -41,7 +41,7 @@ provider "aws" {}
 module "example_module" {
 
     source  = "CheckPointSW/cloudguard-network-security/aws//examples/qs_autoscale_master"
-    version = "1.1.1"
+    version = "1.2.1"
 
     
     // --- Environment ---
