@@ -208,3 +208,13 @@ variable "custom_ami" {
     error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
   }
 }
+
+variable "custom_ami_is_blink" {
+  type = string
+  description = "(Optional) Whether the image supplied in custom_ami is a blink image. Only consulted when custom_ami is set; leave empty to derive the mode from the version, as is done for a published image."
+  default = ""
+  validation {
+    condition     = contains(["", "true", "false"], lower(var.custom_ami_is_blink))
+    error_message = "The custom_ami_is_blink value must be empty, \"true\" or \"false\"."
+  }
+}

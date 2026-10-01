@@ -4,6 +4,7 @@ module "amis" {
 
   version_license = var.mds_version
   chkp_type = "mds"
+  primary_mds = var.mds_installation_type == "Primary Multi-Domain Server"
   custom_ami = var.custom_ami
 }
 
@@ -237,6 +238,10 @@ resource "aws_instance" "mds-instance" {
     EnableInstanceConnect = var.enable_instance_connect
     BootstrapScript = local.mds_bootstrap_script64
     OsVersion = local.version_split
+    // A custom_ami bypasses the amis.yaml lookup, so the version-derived
+    // is_blink can disagree with the image actually booted. Let the caller
+    // declare the mode; empty keeps the derived value (CGNSPC-4431).
+    IsBlink = var.custom_ami != "" && var.custom_ami_is_blink != "" ? lower(var.custom_ami_is_blink) == "true" : module.amis.is_blink
   })
 }
 

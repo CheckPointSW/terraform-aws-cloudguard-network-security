@@ -11,7 +11,10 @@ locals {
     "R82-PAYG-NGTX",
     "R82.10-BYOL",
 	  "R82.10-PAYG-NGTP",
-    "R82.10-PAYG-NGTX"
+    "R82.10-PAYG-NGTX",
+    "R82.20-BYOL",
+    "R82.20-PAYG-NGTP",
+    "R82.20-PAYG-NGTX"
   ]
   mgmt_versions = [
     "R81.10-BYOL",
@@ -21,13 +24,16 @@ locals {
     "R82-BYOL",
     "R82-PAYG",
     "R82.10-BYOL",
-    "R82.10-PAYG"
+    "R82.10-PAYG",
+    "R82.20-BYOL",
+    "R82.20-PAYG"
   ]
   mds_versions = [
     "R81.10-BYOL",
     "R81.20-BYOL",
     "R82-BYOL",
-    "R82.10-BYOL"
+    "R82.10-BYOL",
+    "R82.20-BYOL"
   ]
   standalone_versions = [
     "R81.10-BYOL",
@@ -37,7 +43,9 @@ locals {
     "R82-BYOL",
     "R82-PAYG-NGTP",
     "R82.10-BYOL",
-    "R82.10-PAYG-NGTP"
+    "R82.10-PAYG-NGTP",
+    "R82.20-BYOL",
+    "R82.20-PAYG-NGTP"
   ]
   gwlb_gw_versions = [
 	  "R81.20-BYOL",
@@ -48,7 +56,10 @@ locals {
     "R82-PAYG-NGTX",
     "R82.10-BYOL",
 	  "R82.10-PAYG-NGTP",
-    "R82.10-PAYG-NGTX"
+    "R82.10-PAYG-NGTX",
+    "R82.20-BYOL",
+    "R82.20-PAYG-NGTP",
+    "R82.20-PAYG-NGTX"
     ]
   // The Quick Start (qs_autoscale) solution is supported up to R82 only.
   // R82.10 and above are intentionally absent - deploy the autoscale modules instead.
