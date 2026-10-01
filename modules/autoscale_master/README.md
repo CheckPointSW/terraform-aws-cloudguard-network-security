@@ -28,7 +28,7 @@ provider "aws" {}
 module "example_module" {
 
     source = "checkpointsw/cloudguard-network-security/aws//modules/autoscale_master"
-    version = "1.1.1"
+    version = "1.2.1"
     
     // VPC Configuration
     vpc_cidr = "10.0.0.0/16"
