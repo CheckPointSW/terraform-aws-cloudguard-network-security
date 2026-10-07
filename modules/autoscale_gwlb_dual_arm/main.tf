@@ -326,7 +326,7 @@ resource "aws_iam_role_policy" "lambda_multi_eni_policy" {
           "s3:GetObject",
           "s3:GetObjectVersion"
         ]
-        Resource = "arn:aws:s3:::cgns-cft-utils/gwlb/dual_arm_lifecycle_handler.py"
+        Resource = "arn:aws:s3:::${local.lambda_code_s3_bucket}/${local.lambda_code_s3_key}"
       },
       {
         # Allow Lambda to update its own config to pin S3 code version
@@ -355,8 +355,8 @@ resource "aws_lambda_function" "multi_eni_lambda" {
     variables = {
       PUBLIC_SUBNETS = jsonencode(var.gateways_public_subnets)
       PRIVATE_SUBNETS = jsonencode(var.gateways_private_subnets)
-      S3_BUCKET = "cgns-cft-utils"
-      S3_KEY = "gwlb/dual_arm_lifecycle_handler.py"
+      S3_BUCKET = local.lambda_code_s3_bucket
+      S3_KEY = local.lambda_code_s3_key
       LAMBDA_AUTO_UPDATE = tostring(var.lambda_auto_update)
       IPAM_POOL_ID = var.ipam_pool_id
       # PRM product code so the Lambda can tag the runtime-created ENI and EIP

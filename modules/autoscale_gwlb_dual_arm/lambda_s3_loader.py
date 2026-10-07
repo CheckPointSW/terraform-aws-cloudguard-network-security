@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 def fetch_and_pin_latest_s3_version(bucket, key, context):
     """
     Fetch the latest S3 version and pin it to Lambda environment variable.
-    Returns the version_id.
+    Returns the version_id, or None when the bucket has no versioning.
 
     Args:
         bucket: S3 bucket name
@@ -24,7 +24,14 @@ def fetch_and_pin_latest_s3_version(bucket, key, context):
     lambda_client = boto3.client('lambda')
 
     response = s3_client.get_object(Bucket=bucket, Key=key)
-    version_id = response['VersionId']
+    version_id = response.get('VersionId')
+
+    # A bucket without versioning returns no VersionId - nothing to pin, always read latest
+    if not version_id:
+        logger.info(f"s3://{bucket}/{key} has no version id (bucket versioning disabled). "
+                    f"The latest object will be used on every invocation.")
+        return None
+
     logger.info(f"Latest version: {version_id}. Pinning to Lambda environment...")
 
     try:
@@ -57,10 +64,13 @@ def execute_s3_code(bucket, key, version_id, event, context):
     """
     s3_client = boto3.client('s3')
 
-    # Download the code from S3 using the pinned version
-    response = s3_client.get_object(Bucket=bucket, Key=key, VersionId=version_id)
+    # Download the code from S3 using the pinned version, or the latest when nothing is pinned
+    get_args = {'Bucket': bucket, 'Key': key}
+    if version_id:
+        get_args['VersionId'] = version_id
+    response = s3_client.get_object(**get_args)
     code = response['Body'].read().decode('utf-8')
-    logger.info(f"Using Lambda code version: {version_id}")
+    logger.info(f"Using Lambda code version: {version_id or 'latest'}")
 
     # Create a new module namespace to execute the downloaded code
     module_globals = {

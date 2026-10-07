@@ -82,6 +82,8 @@ module "tgw_gwlb"{
 
   volume_type = var.volume_type
   lambda_auto_update = var.lambda_auto_update
+  lambda_code_s3_bucket = var.lambda_code_s3_bucket
+  lambda_code_s3_key = var.lambda_code_s3_key
   ipam_pool_id = var.ipam_pool_id
   ip_mode = var.ip_mode
   gateways_security_rules = var.gateways_security_rules
