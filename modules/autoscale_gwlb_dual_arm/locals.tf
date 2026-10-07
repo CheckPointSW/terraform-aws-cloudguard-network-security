@@ -6,6 +6,14 @@ locals {
   
   create_iam_role = var.enable_cloudwatch ? 1 : 0
 
+  // Source of the dual-arm lifecycle handler the bootstrap Lambda downloads.
+  // Defaults to the Check Point bucket; a customer-owned bucket may be used instead
+  // when the account blocks S3 access outside the deployment region.
+  lambda_code_default_s3_bucket = "cgns-cft-utils"
+  lambda_code_default_s3_key = "gwlb/dual_arm_lifecycle_handler.py"
+  lambda_code_s3_bucket = var.lambda_code_s3_bucket != "" ? var.lambda_code_s3_bucket : local.lambda_code_default_s3_bucket
+  lambda_code_s3_key = var.lambda_code_s3_key != "" ? var.lambda_code_s3_key : local.lambda_code_default_s3_key
+
   gateways_provision_address_type_allowed_values = [
     "public",
     "private"

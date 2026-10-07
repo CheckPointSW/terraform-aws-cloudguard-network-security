@@ -74,6 +74,8 @@ module "autoscale_gwlb" {
   volume_type = var.volume_type
   ip_mode = var.ip_mode
   lambda_auto_update = var.lambda_auto_update
+  lambda_code_s3_bucket = var.lambda_code_s3_bucket
+  lambda_code_s3_key = var.lambda_code_s3_key
   ipam_pool_id = var.ipam_pool_id
   gateways_security_rules = var.gateways_security_rules
   existing_security_group_id = var.existing_security_group_id

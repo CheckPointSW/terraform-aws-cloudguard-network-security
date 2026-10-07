@@ -263,6 +263,24 @@ variable "lambda_auto_update" {
   description = "When true, the Lambda function will always check for the newest version from S3 on each execution and update the environment variable. When false (default), the Lambda will pin to the latest version on first run and stay with it."
   default = false
 }
+variable "lambda_code_s3_bucket" {
+  type = string
+  description = "(Optional) Name of an S3 bucket holding the dual-arm lifecycle handler code. Leave empty to use the Check Point bucket. Set this to a bucket in the deployment region when cross-region S3 access is blocked. The bucket and key are a deploy-time choice - changing the bucket or key on an existing deployment will break gateway launches, so destroy and re-apply, or use a new workspace. Enable versioning on the bucket to keep the pinned-version behavior, and do not expire noncurrent versions of the object."
+  default = ""
+  validation {
+    condition     = can(regex("^([a-z0-9][a-z0-9.-]{1,61}[a-z0-9])?$", var.lambda_code_s3_bucket))
+    error_message = "The lambda_code_s3_bucket must be a valid S3 bucket name or left empty."
+  }
+}
+variable "lambda_code_s3_key" {
+  type = string
+  description = "(Optional) Object key of the dual-arm lifecycle handler code inside lambda_code_s3_bucket. Leave empty to use the default key, gwlb/dual_arm_lifecycle_handler.py. Like lambda_code_s3_bucket, this is a deploy-time choice - changing the bucket or key on an existing deployment will break gateway launches, so destroy and re-apply, or use a new workspace."
+  default = ""
+  validation {
+    condition     = can(regex("^([^/*?][^*?]*\\.py)?$", var.lambda_code_s3_key))
+    error_message = "The lambda_code_s3_key must be a .py object key without a leading slash and without the wildcard characters * or ?, or left empty."
+  }
+}
 variable "ipam_pool_id" {
   type = string
   description = "(Optional) The ID of an IPAM pool to allocate Elastic IPs from. If not provided, EIPs will be allocated from Amazon's pool of public IPv4 addresses."
