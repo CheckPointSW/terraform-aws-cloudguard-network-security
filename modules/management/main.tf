@@ -223,6 +223,10 @@ resource "aws_instance" "management-instance" {
   }
 
   lifecycle {
+    precondition {
+      condition     = var.ip_mode != "IPv6" || !var.allocate_and_associate_eip
+      error_message = "allocate_and_associate_eip must be false when ip_mode is IPv6. Elastic IPs require IPv4."
+    }
     ignore_changes = [ebs_block_device,]
   }
 
