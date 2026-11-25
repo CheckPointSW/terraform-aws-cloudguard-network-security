@@ -10,6 +10,10 @@
 ## Introduction
 This repository provides a structured set of Terraform modules for deploying Check Point CloudGuard Network Security in Amazon Web Services (AWS). These modules automate the creation of Virtual Private Clouds (VPCs), Security Gateways, High-Availability architectures, and more, enabling secure and scalable cloud deployments.
 
+## GWLB upgrade requirement
+
+`autoscale_gwlb`, `gwlb`, `gwlb_master`, `tgw_gwlb` and `tgw_gwlb_master` require Terraform 1.5 or later. Upgrade Terraform before upgrading these modules.
+
 ## Repository Structure
 `Submodules`: Contains modular, reusable, production-grade Terraform components, each with its own documentation.
 

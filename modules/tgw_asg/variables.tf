@@ -78,6 +78,33 @@ variable "gateways_max_group_size" {
   description = "The maximal number of Security Gateways"
   default = 10
 }
+variable "scale_out_cpu_threshold" {
+  type        = number
+  description = "Scale out by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays above this value for 10 minutes. Keep scale_in_cpu_threshold at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 80
+  validation {
+    condition     = var.scale_out_cpu_threshold >= 0 && var.scale_out_cpu_threshold <= 100
+    error_message = "The scale_out_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_in_cpu_threshold" {
+  type        = number
+  description = "Scale in by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays below this value for 10 minutes. Must be lower than scale_out_cpu_threshold (checked at plan time); keep it at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 60
+  validation {
+    condition     = var.scale_in_cpu_threshold >= 0 && var.scale_in_cpu_threshold <= 100
+    error_message = "The scale_in_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_out_cooldown" {
+  type        = number
+  description = "Seconds the ASG waits after a scale-out before it scales again. Set it longer than a new Security Gateway takes to handle traffic, so one CPU spike does not add two gateways"
+  default     = 300
+  validation {
+    condition     = var.scale_out_cooldown >= 0 && floor(var.scale_out_cooldown) == var.scale_out_cooldown
+    error_message = "The scale_out_cooldown value must be a whole number of seconds, 0 or more."
+  }
+}
 variable "gateway_version" {
   type = string
   description =  "Gateway version and license"

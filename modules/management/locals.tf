@@ -33,11 +33,11 @@ locals {
   ipv6_enabled = var.ip_mode != "IPv4"
 
   // Later cidrs will be list(string) iterations.
-  gateway_ipv4_cidrs = local.ipv4_enabled && strcontains(var.gateway_addresses, ".") ? [var.gateway_addresses] : []
-  gateway_ipv6_cidrs = local.ipv6_enabled && strcontains(var.gateway_addresses, ":") ? [var.gateway_addresses] : []
+  gateway_ipv4_cidrs = local.ipv4_enabled && (length(regexall("[.]", var.gateway_addresses)) > 0) ? [var.gateway_addresses] : []
+  gateway_ipv6_cidrs = local.ipv6_enabled && (length(regexall(":", var.gateway_addresses)) > 0) ? [var.gateway_addresses] : []
   
-  admin_ipv4_cidrs = local.ipv4_enabled && strcontains(var.admin_cidr, ".") ? [var.admin_cidr] : []
-  admin_ipv6_cidrs = local.ipv6_enabled && strcontains(var.admin_cidr, ":") ? [var.admin_cidr] : []
+  admin_ipv4_cidrs = local.ipv4_enabled && (length(regexall("[.]", var.admin_cidr)) > 0) ? [var.admin_cidr] : []
+  admin_ipv6_cidrs = local.ipv6_enabled && (length(regexall(":", var.admin_cidr)) > 0) ? [var.admin_cidr] : []
 
   gateway_management_allowed_values = [
     "Locally managed",

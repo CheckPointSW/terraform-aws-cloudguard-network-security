@@ -13,7 +13,9 @@ module "gateway_load_balancer" {
 
   load_balancers_type = "gateway"
   instances_subnets = var.subnet_ids
-  prefix_name = var.gateway_load_balancer_name
+  prefix_name = local.gateway_load_balancer_name
+  load_balancer_name = var.resource_name_base != "" ? local.gateway_load_balancer_name : ""
+  target_group_name = var.resource_name_base != "" ? local.target_group_name : ""
   internal = true
 
   security_groups = []
@@ -39,7 +41,7 @@ depends_on = [module.gateway_load_balancer]
   acceptance_required        = var.connection_acceptance_required
   supported_ip_address_types = var.ip_mode != "IPv4" ? ["ipv4", "ipv6"] : ["ipv4"]
   tags = merge(var.custom_tags, {
-    "Name" = "gwlb-endpoint-service-${var.gateway_load_balancer_name}"
+    "Name" = "gwlb-endpoint-service-${local.gateway_load_balancer_name}"
     aws-apn-id = "pc:${module.amis.product_code}"
   })
 }
@@ -51,7 +53,8 @@ module "autoscale_gwlb" {
   target_groups = module.gateway_load_balancer[*].target_group_arn
   vpc_id = var.vpc_id
   subnet_ids = var.subnet_ids
-  gateway_name = var.gateway_name
+  gateway_name = local.gateway_name
+  resource_name_base = var.resource_name_base
   gateway_instance_type = var.gateway_instance_type
   key_name = var.key_name
   enable_volume_encryption = var.enable_volume_encryption
@@ -59,6 +62,9 @@ module "autoscale_gwlb" {
   metadata_imdsv2_required = var.metadata_imdsv2_required
   minimum_group_size = var.minimum_group_size
   maximum_group_size = var.maximum_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   gateway_version = var.gateway_version
   custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash
@@ -66,6 +72,7 @@ module "autoscale_gwlb" {
   gateway_SICKey = var.gateway_SICKey
   allow_upload_download = var.allow_upload_download
   enable_cloudwatch = var.enable_cloudwatch
+  existing_iam_instance_profile_name = var.existing_iam_instance_profile_name
   gateway_bootstrap_script = var.gateway_bootstrap_script
   admin_shell = var.admin_shell
   gateways_provision_address_type = var.gateways_provision_address_type
@@ -73,9 +80,15 @@ module "autoscale_gwlb" {
   management_server = var.management_server
   configuration_template = var.configuration_template
   volume_type = var.volume_type
-  ip_mode = var.ip_mode
+  ip_mode                                = var.ip_mode
   existing_security_group_id = var.existing_security_group_id
   custom_tags = var.custom_tags
+  create_asg_per_az                     = var.create_asg_per_az
+  az_instance_types                        = var.az_instance_types
+  instances_tags                         = var.instances_tags
+  // Historically pooled callers did not forward volume_size and used 200 GB.
+  // Honor it only on the new opt-in topology, avoiding legacy template updates.
+  volume_size = var.create_asg_per_az ? var.volume_size : 200
 }
 
 data "aws_region" "current"{}

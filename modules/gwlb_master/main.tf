@@ -14,6 +14,8 @@ module "launch_vpc" {
   private_subnets_map = {}
   subnets_bit_length = var.subnets_bit_length
   ip_mode = var.ip_mode
+  enable_dns_hostnames                   = var.enable_dns_hostnames
+  deployment_prefix                      = var.resource_name_base
   product_code = module.amis.product_code
   custom_tags = var.custom_tags
 }
@@ -36,16 +38,19 @@ module "gwlb" {
   admin_shell = var.admin_shell
 
   // --- Gateway Load Balancer Configuration ---
-  gateway_load_balancer_name = var.gateway_load_balancer_name
-  target_group_name = var.target_group_name
-  connection_acceptance_required = false
+  gateway_load_balancer_name = local.gateway_load_balancer_name
+  target_group_name = local.target_group_name
+  connection_acceptance_required   = false
   enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
 
   // --- Check Point CloudGuard IaaS Security Gateways Auto Scaling Group Configuration ---
-  gateway_name = var.gateway_name
+  gateway_name = local.gateway_name
   gateway_instance_type = var.gateway_instance_type
   minimum_group_size = var.minimum_group_size
   maximum_group_size = var.maximum_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   gateway_version = var.gateway_version
   custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash
@@ -54,6 +59,7 @@ module "gwlb" {
   gateways_provision_address_type = var.gateways_provision_address_type
   allocate_public_IP = var.allocate_public_IP
   enable_cloudwatch = var.enable_cloudwatch
+  existing_iam_instance_profile_name = var.existing_iam_instance_profile_name
   gateway_bootstrap_script = var.gateway_bootstrap_script
 
   // --- Check Point CloudGuard IaaS Security Management Server Configuration ---
@@ -71,4 +77,15 @@ module "gwlb" {
   ip_mode = var.ip_mode
   existing_security_group_id = var.existing_security_group_id
   custom_tags = var.custom_tags
+
+  resource_name_base = var.resource_name_base
+  create_asg_per_az                  = var.create_asg_per_az
+  instances_tags                     = var.instances_tags
+  az_instance_types = {
+    for key, instance_type in local.az_instance_types : key => {
+      subnet_id     = module.launch_vpc.public_subnets_ids_map[key]
+      instance_type = instance_type
+    }
+    if contains(keys(var.public_subnets_map), key)
+  }
 }

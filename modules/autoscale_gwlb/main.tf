@@ -7,7 +7,7 @@ module "amis" {
 }
 
 resource "aws_security_group" "permissive_sg" {
-  count = var.existing_security_group_id == "" ? 1 : 0
+  count = local.create_permissive_sg
   name_prefix = format("%s_PermissiveSecurityGroup", local.asg_name)
   description = "Permissive security group"
   vpc_id = var.vpc_id
@@ -62,13 +62,25 @@ resource "aws_security_group" "permissive_sg" {
 }
 
 resource "aws_launch_template" "asg_launch_template" {
-  name_prefix = local.asg_name
+  lifecycle {
+    precondition {
+      condition     = var.create_asg_per_az || length(var.az_instance_types) == 0
+      error_message = "az_instance_types requires create_asg_per_az=true. Otherwise, leave the map empty and use gateway_instance_type."
+    }
+    precondition {
+      condition     = !var.create_asg_per_az || var.gateway_instance_type == null
+      error_message = "gateway_instance_type cannot be used when create_asg_per_az=true. Omit it or set it to null, and provide an instance type for each AZ in az_instance_types."
+    }
+  }
+
+  name        = var.resource_name_base != "" ? coalesce(var.gateway_name, var.resource_name_base) : null
+  name_prefix = var.resource_name_base != "" ? null : local.asg_name
   image_id = module.amis.ami_id
-  instance_type = var.gateway_instance_type
+  instance_type = var.create_asg_per_az ? null : coalesce(var.gateway_instance_type, "c6in.xlarge")
   key_name = var.key_name
   network_interfaces {
     associate_public_ip_address = var.allocate_public_IP
-    security_groups = [var.existing_security_group_id == "" ? aws_security_group.permissive_sg[0].id : var.existing_security_group_id]
+    security_groups = local.launch_template_security_group_ids
   }
   metadata_options {
     http_tokens = var.metadata_imdsv2_required ? "required" : "optional"
@@ -76,9 +88,9 @@ resource "aws_launch_template" "asg_launch_template" {
   }
 
   dynamic "iam_instance_profile" {
-    for_each = var.enable_cloudwatch ? [1] : []
+    for_each = var.existing_iam_instance_profile_name != "" || local.create_iam_role == 1 ? [1] : []
     content {
-      name = aws_iam_instance_profile.instance_profile[0].name
+      name = local.instance_profile_name
     }
   }
 
@@ -96,6 +108,7 @@ resource "aws_launch_template" "asg_launch_template" {
   }
 
   description = "Initial template version"
+  tags        = length(var.custom_tags) > 0 ? var.custom_tags : null
 
   // PRM revenue-attribution tag and custom tags on volumes and network interfaces
   // created at launch (instances are tagged via the ASG tag block below with
@@ -125,8 +138,11 @@ resource "aws_launch_template" "asg_launch_template" {
     OsVersion = local.version_split
     IPMode = var.ip_mode == "IPv4" ? "false" : "true"
   }))
+
 }
 resource "aws_autoscaling_group" "asg" {
+  count = local.legacy_asg_count
+
   name_prefix = local.asg_name
   launch_template {
     id = aws_launch_template.asg_launch_template.id
@@ -139,52 +155,74 @@ resource "aws_autoscaling_group" "asg" {
   health_check_grace_period = 3600
   health_check_type = "ELB"
 
-  tag {
-    key = "Name"
-    value = format("%s%s", var.prefix != "" ? format("%s-", var.prefix) : "", var.gateway_name)
-    propagate_at_launch = true
-  }
-
-  tag {
-    key = "x-chkp-tags"
-    value = format("management=%s:template=%s:ip-address=%s", var.management_server, var.configuration_template, var.gateways_provision_address_type)
-    propagate_at_launch = true
-  }
-
-  tag {
-    key = "x-chkp-topology"
-    value = "internal"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key = "x-chkp-solution"
-    value = "autoscale_gwlb"
-    propagate_at_launch = true
-  }
-
   dynamic "tag" {
-    for_each = var.instances_tags
+    for_each = merge(local.prm_tags, { Name = format("%s%s", var.prefix != "" ? format("%s-", var.prefix) : "", local.gateway_name) })
     content {
-      key = tag.key
-      value = tag.value
+      key                 = tag.key
+      value               = tag.value
       propagate_at_launch = true
     }
   }
+}
 
-  dynamic "tag" {
-    for_each = var.custom_tags
-    content {
-      key = tag.key
-      value = tag.value
-      propagate_at_launch = true
+resource "aws_autoscaling_group" "az" {
+  for_each = local.per_az_groups
+
+  name                = format("%s-%s", local.asg_name, each.key)
+  vpc_zone_identifier = [each.value.subnet_id]
+
+  min_size         = var.minimum_group_size
+  max_size         = var.maximum_group_size
+  desired_capacity = var.minimum_group_size
+
+  target_group_arns         = var.target_groups
+  health_check_grace_period = 3600
+  health_check_type         = "ELB"
+
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.asg_launch_template.id
+        version            = aws_launch_template.asg_launch_template.latest_version
+      }
+      dynamic "override" {
+        for_each = [each.value.instance_type]
+        content {
+          instance_type = override.value
+        }
+      }
     }
   }
 
-  tag {
-    key = "aws-apn-id"
-    value = "pc:${module.amis.product_code}"
-    propagate_at_launch = true
+  // Roll template changes; a single-instance group may temporarily reach zero capacity.
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = var.minimum_group_size == 1 ? 0 : 50
+    }
+  }
+
+  enabled_metrics = [
+    "GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity",
+    "GroupInServiceInstances", "GroupPendingInstances", "GroupStandbyInstances",
+    "GroupTerminatingInstances", "GroupTotalInstances",
+  ]
+
+  lifecycle {
+    precondition {
+      condition     = var.minimum_group_size >= 1 && floor(var.minimum_group_size) == var.minimum_group_size
+      error_message = "Per-AZ groups require minimum_group_size to be a positive integer."
+    }
+    ignore_changes = [desired_capacity]
+  }
+
+  dynamic "tag" {
+    for_each = merge(local.prm_tags, { Name = format("%s-%s", local.asg_name, each.key) })
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
   }
 }
 
@@ -202,65 +240,84 @@ data "aws_iam_policy_document" "assume_role_policy_document" {
 
 resource "aws_iam_role" "role" {
   count = local.create_iam_role
-  name_prefix = format("%s-iam_role", local.asg_name)
+  name        = local.gateway_iam_role_name
+  name_prefix = local.gateway_iam_role_name == null ? format("%s-iam_role", local.asg_name) : null
+  description = var.create_asg_per_az ? "Role for Check Point CloudGuard Gateway instances" : null
+  tags        = var.create_asg_per_az ? var.custom_tags : null
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy_document.json
   path = "/"
 }
 module "attach_cloudwatch_policy" {
   source = "../cloudwatch_policy"
-  count = local.create_iam_role
+  count = local.create_iam_role == 1 && var.enable_cloudwatch ? 1 : 0
   role = aws_iam_role.role[count.index].name
   tag_name = local.asg_name
 }
 resource "aws_iam_instance_profile" "instance_profile" {
   count = local.create_iam_role
-  name_prefix = format("%s-iam_instance_profile", local.asg_name)
+  name        = local.gateway_iam_instance_profile_name
+  name_prefix = local.gateway_iam_instance_profile_name == null ? format("%s-iam_instance_profile", local.asg_name) : null
+  tags        = var.create_asg_per_az ? var.custom_tags : null
   path = "/"
   role = aws_iam_role.role[count.index].name
 }
 
 // Scaling metrics
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_low" {
-  alarm_name = format("%s_alarm_low", aws_autoscaling_group.asg.name)
+  count = local.legacy_asg_count
+
+  alarm_name = format("%s_alarm_low", aws_autoscaling_group.asg[0].name)
   metric_name = "CPUUtilization"
-  alarm_description = "Scale-down if CPU < 60% for 10 minutes"
+  alarm_description = "Scale-down if CPU < ${var.scale_in_cpu_threshold}% for 10 minutes"
   namespace = "AWS/EC2"
   statistic = "Average"
   period = 300
   evaluation_periods = 2
-  threshold = 60
-  alarm_actions = [aws_autoscaling_policy.scale_down_policy.arn]
+  threshold = var.scale_in_cpu_threshold
+  alarm_actions = [aws_autoscaling_policy.scale_down_policy[0].arn]
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.asg.name
+    AutoScalingGroupName = aws_autoscaling_group.asg[0].name
   }
   comparison_operator = "LessThanThreshold"
+  lifecycle {
+    precondition {
+      condition     = var.scale_in_cpu_threshold < var.scale_out_cpu_threshold
+      error_message = "scale_in_cpu_threshold (${var.scale_in_cpu_threshold}) must be lower than scale_out_cpu_threshold (${var.scale_out_cpu_threshold}). Keep it at least 20 points lower to avoid flapping."
+    }
+  }
 }
 resource "aws_autoscaling_policy" "scale_down_policy" {
-  autoscaling_group_name = aws_autoscaling_group.asg.name
-  name = format("%s_scale_down", aws_autoscaling_group.asg.name)
+  count = local.legacy_asg_count
+
+  autoscaling_group_name = aws_autoscaling_group.asg[0].name
+  name = format("%s_scale_down", aws_autoscaling_group.asg[0].name)
   adjustment_type = "ChangeInCapacity"
   cooldown = 300
   scaling_adjustment = -1
 }
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_high" {
-  alarm_name = format("%s_alarm_high", aws_autoscaling_group.asg.name)
+  count = local.legacy_asg_count
+
+  alarm_name = format("%s_alarm_high", aws_autoscaling_group.asg[0].name)
   metric_name = "CPUUtilization"
-  alarm_description = "Scale-up if CPU > 80% for 10 minutes"
+  alarm_description = "Scale-up if CPU > ${var.scale_out_cpu_threshold}% for 10 minutes"
   namespace = "AWS/EC2"
   statistic = "Average"
   period = 300
   evaluation_periods = 2
-  threshold = 80
-  alarm_actions = [aws_autoscaling_policy.scale_up_policy.arn]
+  threshold = var.scale_out_cpu_threshold
+  alarm_actions = [aws_autoscaling_policy.scale_up_policy[0].arn]
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.asg.name
+    AutoScalingGroupName = aws_autoscaling_group.asg[0].name
   }
   comparison_operator = "GreaterThanThreshold"
 }
 resource "aws_autoscaling_policy" "scale_up_policy" {
-  autoscaling_group_name = aws_autoscaling_group.asg.name
-  name = format("%s_scale_up", aws_autoscaling_group.asg.name)
+  count = local.legacy_asg_count
+
+  autoscaling_group_name = aws_autoscaling_group.asg[0].name
+  name = format("%s_scale_up", aws_autoscaling_group.asg[0].name)
   adjustment_type = "ChangeInCapacity"
-  cooldown = 300
+  cooldown = var.scale_out_cooldown
   scaling_adjustment = 1
 }

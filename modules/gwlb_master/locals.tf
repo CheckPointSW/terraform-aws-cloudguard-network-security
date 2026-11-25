@@ -1,4 +1,23 @@
 locals {
+  gateway_load_balancer_name = var.gateway_load_balancer_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "gwlb1"
+  ) : (
+    var.gateway_load_balancer_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.gateway_load_balancer_name
+  )
+  target_group_name = var.target_group_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "tg1"
+  ) : (
+    var.target_group_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.target_group_name
+  )
+  gateway_name = var.resource_name_base != "" ? var.gateway_name : (
+    var.gateway_name == null ? "Check-Point-Gateway-tf" : var.gateway_name
+  )
+
+  az_instance_types = {
+    for key, instance_type in var.az_instance_types : key => instance_type
+    if var.create_asg_per_az
+  }
+
   regex_valid_vpc_cidr = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
   // Will fail if var.vpc_cidr is invalid
   regex_vpc_cidr = regex(local.regex_valid_vpc_cidr, var.vpc_cidr) == var.vpc_cidr ? 0 : "Variable [vpc_cidr] must be a valid vpc cidr"

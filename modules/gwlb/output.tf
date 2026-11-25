@@ -12,7 +12,7 @@ output "management_public_ip" {
   value = module.management[*].management_public_ip
 }
 output "gwlb_name" {
-  value = var.gateway_load_balancer_name
+  value = local.gateway_load_balancer_name
 }
 output "controller_name" {
   value = "gwlb-controller"
@@ -22,4 +22,21 @@ output "template_name" {
 }
 output "ip_mode"{
   value = var.ip_mode
+}
+
+output "endpoint_service_id" {
+  value = aws_vpc_endpoint_service.gwlb_endpoint_service.id
+}
+output "autoscale_asg_names" {
+  value = module.autoscale_gwlb.autoscale_asg_names
+}
+
+output "gateway_iam_role_name" {
+  description = "Created gateway IAM role name, or null when gateway IAM creation is disabled. The caller can attach additional policies to this role."
+  value       = module.autoscale_gwlb.gateway_iam_role_name
+}
+
+output "gateway_iam_instance_profile_name" {
+  description = "Gateway instance-profile name, supplied or created, or null when neither is configured."
+  value       = module.autoscale_gwlb.gateway_iam_instance_profile_name
 }

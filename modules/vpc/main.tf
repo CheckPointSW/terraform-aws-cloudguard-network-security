@@ -2,6 +2,7 @@
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
   assign_generated_ipv6_cidr_block = local.ipv6_enabled
+  enable_dns_hostnames = var.enable_dns_hostnames
 
   tags = merge({
     Name = var.deployment_prefix != "" ? "${var.deployment_prefix}-VPC" : "VPC"
@@ -19,11 +20,12 @@ resource "aws_subnet" "public_subnets" {
   for_each = var.public_subnets_map
 
   vpc_id = aws_vpc.vpc.id
-  availability_zone = each.key
+  availability_zone    = local.public_subnet_is_az_id[each.key] ? null : each.key
+  availability_zone_id = local.public_subnet_is_az_id[each.key] ? each.key : null
 
   # IPv6 Support
   cidr_block = !local.ipv4_enabled ? null : cidrsubnet(aws_vpc.vpc.cidr_block, var.subnets_bit_length, each.value)
-  ipv6_cidr_block = local.ipv6_enabled ? cidrsubnet(aws_vpc.vpc.ipv6_cidr_block, var.subnets_bit_length, each.value) : null
+  ipv6_cidr_block = local.ipv6_enabled ? cidrsubnet(aws_vpc.vpc.ipv6_cidr_block, local.public_subnet_is_az_id[each.key] ? 8 : var.subnets_bit_length, each.value) : null
   ipv6_native = !local.ipv4_enabled
   assign_ipv6_address_on_creation = local.ipv6_enabled
   map_public_ip_on_launch = !local.ipv4_enabled ? null : true
@@ -31,7 +33,7 @@ resource "aws_subnet" "public_subnets" {
   enable_resource_name_dns_aaaa_record_on_launch = !local.ipv4_enabled
 
   tags = merge({
-    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s", var.deployment_prefix, each.value) : format("Public subnet %s", each.value)
+    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s", var.deployment_prefix, local.public_subnet_is_az_id[each.key] ? each.key : each.value) : format("Public subnet %s", local.public_subnet_is_az_id[each.key] ? each.key : each.value)
   }, local.all_tags)
 }
 
@@ -86,7 +88,7 @@ resource "aws_route_table" "public_subnet_rtb" {
 
   vpc_id = aws_vpc.vpc.id
   tags = merge({
-    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s Route Table", var.deployment_prefix, each.value) : format("Public subnet %s Route Table", each.value)
+    Name = var.deployment_prefix != "" ? format("%s-Public subnet %s Route Table", var.deployment_prefix, local.public_subnet_is_az_id[each.key] ? each.key : each.value) : format("Public subnet %s Route Table", local.public_subnet_is_az_id[each.key] ? each.key : each.value)
   }, local.all_tags)
 }
 resource "aws_route" "vpc_internet_access" {

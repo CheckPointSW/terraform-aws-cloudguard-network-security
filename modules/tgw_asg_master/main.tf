@@ -35,6 +35,9 @@ module "launch_tgw_asg_into_vpc" {
   gateway_instance_type = var.gateway_instance_type
   gateways_min_group_size = var.gateways_min_group_size
   gateways_max_group_size = var.gateways_max_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   gateway_version = var.gateway_version
   custom_ami = var.custom_ami
   gateway_password_hash = var.gateway_password_hash

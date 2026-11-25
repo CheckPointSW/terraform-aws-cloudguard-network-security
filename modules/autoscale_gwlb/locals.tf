@@ -1,6 +1,42 @@
 locals {
-  asg_name = format("%s%s", var.prefix != "" ? format("%s-", var.prefix) : "", var.asg_name)
-  create_iam_role = var.enable_cloudwatch ? 1 : 0
+
+  gateway_name = var.gateway_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "Check-Point-ASG-gateway-tf"
+  ) : (
+    var.gateway_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.gateway_name
+  )
+  pooled_asg_name = var.asg_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "Check-Point-ASG-tf"
+  ) : (
+    var.asg_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.asg_name
+  )
+
+  asg_name = format("%s%s", var.prefix != "" ? format("%s-", var.prefix) : "", local.use_per_az_asgs ? local.gateway_name : local.pooled_asg_name)
+
+  cme_tags = {
+    x-chkp-tags     = format("management=%s:template=%s:ip-address=%s", var.management_server, var.configuration_template, var.gateways_provision_address_type)
+    x-chkp-topology = "internal"
+    x-chkp-solution = "autoscale_gwlb"
+  }
+
+  prm_tags = merge(var.custom_tags, var.instances_tags, local.cme_tags, {
+    aws-apn-id = "pc:${module.amis.product_code}"
+  })
+
+  create_iam_role = var.existing_iam_instance_profile_name == "" && (var.create_asg_per_az || var.enable_cloudwatch) ? 1 : 0
+  instance_profile_name = var.existing_iam_instance_profile_name != "" ? var.existing_iam_instance_profile_name : one(aws_iam_instance_profile.instance_profile[*].name)
+
+  gateway_iam_role_name             = var.resource_name_base != "" ? "${var.resource_name_base}-GatewayRole" : null
+  gateway_iam_instance_profile_name = var.resource_name_base != "" ? "${var.resource_name_base}-GatewayInstanceProfile" : null
+
+  existing_gateway_security_group_ids = var.existing_security_group_id == "" || var.existing_security_group_id == null ? [] : flatten([var.existing_security_group_id])
+  create_permissive_sg = length(local.existing_gateway_security_group_ids) == 0 ? 1 : 0
+
+  launch_template_security_group_ids = length(local.existing_gateway_security_group_ids) > 0 ? local.existing_gateway_security_group_ids : aws_security_group.permissive_sg[*].id
+
+  use_per_az_asgs   = var.create_asg_per_az
+  per_az_groups    = var.create_asg_per_az ? var.az_instance_types : {}
+  legacy_asg_count = var.create_asg_per_az ? 0 : 1
 
   gateways_provision_address_type_allowed_values = [
     "public",
@@ -19,7 +55,6 @@ locals {
   validate_admin_shell = index(local.admin_shell_allowed_values, var.admin_shell)
 
   regex_valid_key_name = "[\\S\\s]+[\\S]+"
-  // will fail if var.key_name is invalid
   regex_key_name_result=regex(local.regex_valid_key_name, var.key_name) == var.key_name ? 0 : "Variable [key_name] must be a none empty string"
 
   regex_valid_sic_key = "^[a-zA-Z0-9]{8,}$"
