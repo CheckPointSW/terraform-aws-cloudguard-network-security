@@ -1,4 +1,8 @@
 locals {
+  public_subnet_is_az_id = {
+    for zone in keys(var.public_subnets_map) : zone => can(regex("-(az|wlz)[0-9]+$", zone))
+  }
+
   ipv6_enabled = var.ip_mode != "IPv4"
   ipv4_enabled = var.ip_mode != "IPv6"
 

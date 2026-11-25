@@ -81,6 +81,9 @@ module "autoscale" {
   metadata_imdsv2_required = var.metadata_imdsv2_required
   minimum_group_size = var.gateways_min_group_size
   maximum_group_size = var.gateways_max_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   target_groups = tolist([module.external_load_balancer.target_group_arn])
   gateway_version = var.gateway_version
   admin_shell = var.admin_shell

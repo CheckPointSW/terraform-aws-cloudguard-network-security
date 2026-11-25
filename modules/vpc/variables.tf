@@ -3,7 +3,11 @@ variable "vpc_cidr" {
 }
 variable "public_subnets_map" {
   type = map(string)
-  description = "A map of pairs {availability-zone = subnet-suffix-number}. Each entry creates a subnet. Minimum 1 pair.  (e.g. {\"us-east-1a\" = 1} ) "
+  description = "A map of pairs {availability-zone-name-or-id = subnet-suffix-number}. Keys must be all AZ names or all AZ IDs. Public subnet keys are detected automatically without changing resource keys; AZ-ID IPv6 subnets use /64 CIDRs. Each entry creates a subnet. Minimum 1 pair.  (e.g. {\"us-east-1a\" = 1} ) "
+  validation {
+    condition     = length(distinct([for zone in keys(var.public_subnets_map) : can(regex("-(az|wlz)[0-9]+$", zone))])) <= 1
+    error_message = "public_subnets_map keys must be all AZ names (e.g. us-east-1a) or all AZ IDs (e.g. use1-az1), not a mix."
+  }
 }
 variable "private_subnets_map" {
   type = map(string)
@@ -48,4 +52,10 @@ variable "custom_tags" {
   type = map(string)
   description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (VPC, subnets, route tables, internet gateway)."
   default = {}
+}
+
+variable "enable_dns_hostnames" {
+  type = bool
+  description = "Enable DNS hostnames in the VPC. Null leaves the current AWS value unmanaged; true or false explicitly manages the setting."
+  default = null
 }

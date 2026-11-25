@@ -60,6 +60,9 @@ module "autoscale_gwlb" {
   metadata_imdsv2_required = var.metadata_imdsv2_required
   minimum_group_size = var.minimum_group_size
   maximum_group_size = var.maximum_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   gateway_version = var.gateway_version
   gateway_password_hash = var.gateway_password_hash
   gateway_maintenance_mode_password_hash = var.gateway_maintenance_mode_password_hash

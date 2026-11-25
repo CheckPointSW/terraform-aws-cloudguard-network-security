@@ -1,6 +1,17 @@
 // Module: Check Point CloudGuard Network Auto Scaling Group into an existing VPC
 
 // --- Environment ---
+variable "existing_iam_instance_profile_name" {
+  description = "Optional existing EC2 instance-profile name for gateways. Nonempty skips module-owned gateway IAM creation and CloudWatch policy attachment; the caller owns permissions on the supplied profile's role. Empty preserves existing IAM behavior."
+  type        = string
+  default     = ""
+  nullable    = false
+  validation {
+    condition     = var.existing_iam_instance_profile_name == "" || can(regex("^[A-Za-z0-9_+=,.@-]{1,128}$", var.existing_iam_instance_profile_name))
+    error_message = "existing_iam_instance_profile_name must be empty or a valid IAM instance-profile name, not an ARN."
+  }
+}
+
 variable "prefix" {
   type = string
   description = "(Optional) Instances name prefix"
@@ -12,10 +23,10 @@ variable "prefix" {
 }
 variable "asg_name" {
   type = string
-  description = "Autoscaling Group name"
-  default = "Check-Point-ASG-tf"
+  description = "Optional pooled-ASG name prefix. Null uses resource_name_base when supplied, otherwise the historical Check-Point-ASG-tf prefix. Explicit values retain priority."
+  default = null
   validation {
-    condition     = length(var.asg_name) <= 100
+    condition     = var.asg_name == null ? true : length(var.asg_name) <= 100
     error_message = "Autoscaling Group name can not exceed 100 characters."
   }
 }
@@ -63,19 +74,20 @@ variable "configuration_template" {
 // --- EC2 Instances Configuration ---
 variable "gateway_name" {
   type = string
-  description = "The name tag of the Security Gateways instances"
-  default = "Check-Point-ASG-gateway-tf"
+  description = "Optional gateway name. With resource_name_base set, a nonempty explicit value takes precedence for gateway naming and the exact launch-template name; null or empty uses resource_name_base, preserving all hyphens in the launch-template name. With an empty base, legacy gateway labels and generated launch-template naming are preserved."
+  default = null
 }
 variable "gateway_instance_type" {
   type = string
-  description = "The instance type of the Security Gateways"
-  default = "c6in.xlarge"
+  description = "Instance type for one ASG across selected AZs; null uses c6in.xlarge. Must be omitted or null when create_asg_per_az is true; set each AZ's type in az_instance_types instead."
+  default     = null
 }
 module "validate_instance_type" {
   source = "../instance_type"
+  count  = var.create_asg_per_az ? 0 : 1
 
   chkp_type = "gateway"
-  instance_type = var.gateway_instance_type
+  instance_type = coalesce(var.gateway_instance_type, "c6in.xlarge")
 }
 variable "key_name" {
   type = string
@@ -97,12 +109,12 @@ variable "enable_volume_encryption" {
 }
 variable "instances_tags" {
   type = map(string)
-  description = "(Optional) A map of tags as key=value pairs. All tags will be added on all Auto Scaling Group instances"
+  description = "(Optional) Gateway instance tags propagated by the ASG. Override custom_tags on instances; generated Name, CME and Marketplace tags take precedence."
   default = {}
 }
 variable "custom_tags" {
   type = map(string)
-  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (Auto Scaling Group instances, volumes, network interfaces, and the security group)."
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this module (Auto Scaling Group instances, volumes, network interfaces, launch template, and the security group). Gateway IAM role/profile tags apply only with create_asg_per_az=true."
   default = {}
 }
 variable "metadata_imdsv2_required" {
@@ -121,6 +133,33 @@ variable "maximum_group_size" {
   type = number
   description = "The maximum number of instances in the Auto Scaling group"
   default = 10
+}
+variable "scale_out_cpu_threshold" {
+  type        = number
+  description = "Scale out by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays above this value for 10 minutes. Keep scale_in_cpu_threshold at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 80
+  validation {
+    condition     = var.scale_out_cpu_threshold >= 0 && var.scale_out_cpu_threshold <= 100
+    error_message = "The scale_out_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_in_cpu_threshold" {
+  type        = number
+  description = "Scale in by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays below this value for 10 minutes. Must be lower than scale_out_cpu_threshold (checked at plan time); keep it at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 60
+  validation {
+    condition     = var.scale_in_cpu_threshold >= 0 && var.scale_in_cpu_threshold <= 100
+    error_message = "The scale_in_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_out_cooldown" {
+  type        = number
+  description = "Seconds the ASG waits after a scale-out before it scales again. Set it longer than a new Security Gateway takes to handle traffic, so one CPU spike does not add two gateways"
+  default     = 300
+  validation {
+    condition     = var.scale_out_cooldown >= 0 && floor(var.scale_out_cooldown) == var.scale_out_cooldown
+    error_message = "The scale_out_cooldown value must be a whole number of seconds, 0 or more."
+  }
 }
 variable "target_groups" {
   type = list(string)
@@ -209,12 +248,16 @@ variable "ip_mode" {
   }
 }
 variable "existing_security_group_id" {
-  type = string
-  description = "(Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created"
-  default = ""
+  type        = any
+  description = "Existing gateway security group ID, or a list of IDs. Empty string (default) or an empty list supplies no existing groups. Supplied groups are attached to the gateways; the original permissive fallback is used only when no existing IDs are supplied."
+  default     = ""
   validation {
-    condition     = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id))
-    error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
+    condition = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id)) ? true : try(
+      can(tolist(var.existing_security_group_id)) && alltrue([
+        for id in var.existing_security_group_id : can(regex("^sg-[0-9a-f]{8,17}$", id))
+      ]), false
+    )
+    error_message = "existing_security_group_id must be empty, one valid security group ID, or a list of valid security group IDs (sg-<hex>)."
   }
 }
 
@@ -226,4 +269,11 @@ variable "custom_ami" {
     condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
     error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
   }
+}
+
+variable "resource_name_base" {
+  type = string
+  default = ""
+  nullable = false
+  description = "Empty preserves the existing generated launch-template and ASG naming behavior. Nonempty uses gateway_name as the exact launch-template name, falling back to this base unchanged, and supplies unspecified gateway and single-ASG names. Explicit names take precedence. Created gateway IAM identities use this base with -GatewayRole and -GatewayInstanceProfile suffixes. Changing naming mode can replace named resources."
 }

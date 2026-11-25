@@ -1,4 +1,18 @@
 locals {
+  gateway_load_balancer_name = var.gateway_load_balancer_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "gwlb1"
+  ) : (
+    var.gateway_load_balancer_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.gateway_load_balancer_name
+  )
+  target_group_name = var.target_group_name == null ? (
+    var.resource_name_base != "" ? var.resource_name_base : "tg1"
+  ) : (
+    var.target_group_name == "" && var.resource_name_base != "" ? var.resource_name_base : var.target_group_name
+  )
+  gateway_name = var.resource_name_base != "" ? var.gateway_name : (
+    var.gateway_name == null ? "Check-Point-Gateway-tf" : var.gateway_name
+  )
+
 
   regex_valid_gateway_sic_key = "^[a-zA-Z0-9]{8,}$"
   // Will fail if var.gateway_SIC_Key is invalid

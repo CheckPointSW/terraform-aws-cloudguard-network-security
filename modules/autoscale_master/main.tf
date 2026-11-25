@@ -39,6 +39,9 @@ module "launch_autoscale_into_vpc" {
   // --- Auto Scaling Configuration ---
   minimum_group_size = var.minimum_group_size
   maximum_group_size = var.maximum_group_size
+  scale_out_cpu_threshold = var.scale_out_cpu_threshold
+  scale_in_cpu_threshold = var.scale_in_cpu_threshold
+  scale_out_cooldown = var.scale_out_cooldown
   target_groups = var.target_groups
 
   // --- Check Point Settings ---

@@ -4,6 +4,9 @@ output "vpc_id" {
 output "public_subnets_ids_list" {
   value = [for public_subnet in aws_subnet.public_subnets : public_subnet.id ]
 }
+output "public_subnets_ids_map" {
+  value = { for zone, subnet in aws_subnet.public_subnets : zone => subnet.id }
+}
 output "private_subnets_ids_list" {
   value = [for private_subnet in aws_subnet.private_subnets : private_subnet.id]
 }
@@ -24,4 +27,16 @@ output "aws_igw" {
 }
 output "ip_mode"{
    value = var.ip_mode
+}
+output "vpc_cidr_block" {
+  value = aws_vpc.vpc.cidr_block
+}
+output "vpc_ipv6_cidr_block" {
+  value = try(coalesce(aws_vpc.vpc.ipv6_cidr_block, ""), "")
+}
+output "public_subnets_cidrs_map" {
+  value = { for zone, subnet in aws_subnet.public_subnets : zone => subnet.cidr_block }
+}
+output "public_subnets_ipv6_cidrs_map" {
+  value = { for zone, subnet in aws_subnet.public_subnets : zone => subnet.ipv6_cidr_block }
 }

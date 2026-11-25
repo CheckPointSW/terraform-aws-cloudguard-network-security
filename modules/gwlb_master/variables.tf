@@ -1,6 +1,17 @@
 // Module: Check Point CloudGuard Network Gateway Load Balancer into an existing VPC
 
 // --- Network Configuration ---
+variable "existing_iam_instance_profile_name" {
+  description = "Optional existing EC2 instance-profile name for gateways. Nonempty skips module-owned gateway IAM creation and CloudWatch policy attachment; the caller owns permissions on the supplied profile's role. Empty preserves existing IAM behavior."
+  type        = string
+  default     = ""
+  nullable    = false
+  validation {
+    condition     = var.existing_iam_instance_profile_name == "" || can(regex("^[A-Za-z0-9_+=,.@-]{1,128}$", var.existing_iam_instance_profile_name))
+    error_message = "existing_iam_instance_profile_name must be empty or a valid IAM instance-profile name, not an ARN."
+  }
+}
+
 variable "number_of_AZs" {
   type = number
   description = "Number of Availability Zones to use in the VPC. This must match your selections in the list of Availability Zones parameter"
@@ -32,7 +43,7 @@ variable "enable_volume_encryption" {
 }
 variable "volume_size" {
   type = number
-  description = "Root volume size (GB) - minimum 100"
+  description = "Gateway root volume size (GB), minimum 100. Applies only when create_asg_per_az=true; otherwise gateways use 200 GB."
   default = 200
 }
 resource "null_resource" "volume_size_too_small" {
@@ -81,25 +92,25 @@ variable "admin_shell" {
 
 variable "gateway_load_balancer_name" {
   type = string
-  description =  "Gateway Load Balancer name. This name must be unique within your AWS account and can have a maximum of 32 alphanumeric characters and hyphens. A name cannot begin or end with a hyphen."
-  default = "gwlb1"
+  description =  "Optional GWLB name, at most 32 characters. With a nonempty resource_name_base, a nonempty explicit name wins; null or empty falls back to the base name. Empty resource_name_base preserves the legacy generated naming behavior and the effective gwlb1 input default."
+  default = null
 }
 resource "null_resource" "gateway_load_balancer_name_too_long" {
   // Will fail if gateway_load_balancer_name more than 32
-  count = length(var.gateway_load_balancer_name) <= 32 ? 0 : "variable gateway_load_balancer_name must be at most 32"
+  count = length(local.gateway_load_balancer_name) <= 32 ? 0 : "variable gateway_load_balancer_name must be at most 32"
 }
 variable "target_group_name" {
   type = string
-  description =  "Target Group Name. This name must be unique within your AWS account and can have a maximum of 32 alphanumeric characters and hyphens. A name cannot begin or end with a hyphen."
-  default = "tg1"
+  description =  "Optional target-group name, at most 32 characters. With a nonempty resource_name_base, a nonempty explicit name wins; null or empty falls back to the base name. Empty resource_name_base preserves the legacy generated naming behavior and the effective tg1 input default."
+  default = null
 }
 resource "null_resource" "target_group_name_too_long" {
   // Will fail if target_group_name more than 32
-  count = length(var.target_group_name) <= 32 ? 0 : "variable target_group_name must be at most 32"
+  count = length(local.target_group_name) <= 32 ? 0 : "variable target_group_name must be at most 32"
 }
 variable "connection_acceptance_required" {
   type = bool
-  description =  "Indicate whether requests from service consumers to create an endpoint to your service must be accepted. Default is set to false(acceptance not required)."
+  description =  "Retained for compatibility; this wrapper always disables endpoint connection acceptance."
   default = false
 }
 variable "enable_cross_zone_load_balancing" {
@@ -112,19 +123,20 @@ variable "enable_cross_zone_load_balancing" {
 
 variable "gateway_name" {
   type = string
-  description = "The name tag of the Security Gateway instances. (optional)"
-  default = "Check-Point-Gateway-tf"
+  description = "Optional gateway name. With resource_name_base set, a nonempty explicit value takes precedence for gateway naming and the exact launch-template name; null or empty uses resource_name_base, preserving all hyphens in the launch-template name. With an empty base, legacy gateway labels and generated launch-template naming are preserved."
+  default = null
 }
 variable "gateway_instance_type" {
   type = string
-  description = "The EC2 instance type for the Security Gateways."
-  default = "c6in.xlarge"
+  description = "Instance type for one ASG across selected AZs; null uses c6in.xlarge. Must be omitted or null when create_asg_per_az is true; set each AZ's type in az_instance_types instead."
+  default     = null
 }
 module "validate_instance_type" {
   source = "../instance_type"
+  count  = var.create_asg_per_az ? 0 : 1
 
   chkp_type = "gateway"
-  instance_type = var.gateway_instance_type
+  instance_type = coalesce(var.gateway_instance_type, "c6in.xlarge")
 }
 variable "minimum_group_size" {
   type = number
@@ -135,6 +147,33 @@ variable "maximum_group_size" {
   type = number
   description = "The maximal number of Security Gateways."
   default = 10
+}
+variable "scale_out_cpu_threshold" {
+  type        = number
+  description = "Scale out by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays above this value for 10 minutes. Keep scale_in_cpu_threshold at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 80
+  validation {
+    condition     = var.scale_out_cpu_threshold >= 0 && var.scale_out_cpu_threshold <= 100
+    error_message = "The scale_out_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_in_cpu_threshold" {
+  type        = number
+  description = "Scale in by one Security Gateway when the Auto Scaling group's average CPU utilization (%) stays below this value for 10 minutes. Must be lower than scale_out_cpu_threshold (checked at plan time); keep it at least 20 points lower to avoid flapping, e.g. 80/60 (default) or 70/45 for sustained large flows"
+  default     = 60
+  validation {
+    condition     = var.scale_in_cpu_threshold >= 0 && var.scale_in_cpu_threshold <= 100
+    error_message = "The scale_in_cpu_threshold value must be between 0 and 100."
+  }
+}
+variable "scale_out_cooldown" {
+  type        = number
+  description = "Seconds the ASG waits after a scale-out before it scales again. Set it longer than a new Security Gateway takes to handle traffic, so one CPU spike does not add two gateways"
+  default     = 300
+  validation {
+    condition     = var.scale_out_cooldown >= 0 && floor(var.scale_out_cooldown) == var.scale_out_cooldown
+    error_message = "The scale_out_cooldown value must be a whole number of seconds, 0 or more."
+  }
 }
 variable "gateway_version" {
   type = string
@@ -270,17 +309,21 @@ variable "ip_mode" {
   }
 }
 variable "existing_security_group_id" {
-  type = string
-  description = "(Optional) The ID of an existing Security Group to use (e.g. sg-0123456789abcdef0). If empty, a new Security Group open to all traffic (0.0.0.0/0) will be created"
-  default = ""
+  type        = any
+  description = "Existing gateway security group ID, or a list of IDs. Empty string (default) or an empty list supplies no existing groups. Supplied groups are attached to the gateways; the original permissive fallback is used only when no existing IDs are supplied."
+  default     = ""
   validation {
-    condition     = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id))
-    error_message = "The existing_security_group_id must be a valid Security Group ID (e.g. sg-0123456789abcdef0) or left empty."
+    condition = can(regex("^(sg-[0-9a-f]{8,17})?$", var.existing_security_group_id)) ? true : try(
+      can(tolist(var.existing_security_group_id)) && alltrue([
+        for id in var.existing_security_group_id : can(regex("^sg-[0-9a-f]{8,17}$", id))
+      ]), false
+    )
+    error_message = "existing_security_group_id must be empty, one valid security group ID, or a list of valid security group IDs (sg-<hex>)."
   }
 }
 variable "custom_tags" {
   type = map(string)
-  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this deployment (the VPC infrastructure and the Auto Scaling Group / Gateway Load Balancer / Transit Gateway resources)."
+  description = "(Optional) A map of custom tags as key=value pairs. All tags are added to every resource created by this deployment (the VPC infrastructure and the Auto Scaling Group / Gateway Load Balancer / Transit Gateway resources). Gateway IAM role/profile tags apply only with create_asg_per_az=true."
   default = {}
 }
 
@@ -291,5 +334,44 @@ variable "custom_ami" {
   validation {
     condition     = can(regex("^(ami-[0-9a-f]{8,17})?$", var.custom_ami))
     error_message = "The custom_ami value must be empty or a valid AMI id (ami-xxxxxxxx)."
+  }
+}
+
+
+variable "create_asg_per_az" {
+  type        = bool
+  default     = false
+  description = "False (default) creates one ASG across selected AZs and requires an empty az_instance_types map. True requires gateway_instance_type to be omitted or null and a nonempty instance type in each map entry. It creates one ASG per map entry and a shared gateway IAM role/profile; an empty map creates no ASGs but still creates IAM resources. When used through gwlb_master, public-subnet routing is unchanged: one route table and association per configured subnet, with default routes when enabled, in either ASG mode. The launch template is always created."
+}
+
+
+variable "instances_tags" {
+  type        = map(string)
+  default     = {}
+  description = "Additional gateway instance tags propagated by the ASG. Override custom_tags on instances; generated Name, CME and Marketplace tags take precedence. These do not tag volumes or network interfaces."
+}
+
+variable "enable_dns_hostnames" {
+  type        = bool
+  description = "Enable DNS hostnames in the VPC. Null leaves the current AWS value unmanaged; true or false explicitly manages the setting."
+  default     = null
+}
+
+variable "resource_name_base" {
+  type        = string
+  description = "Deployment identifier used to derive resource names. Explicit resource names take precedence where supported. Defaults to empty, preserving existing naming behavior. Changing this value can replace existing named resources."
+  default     = ""
+  nullable    = false
+}
+
+variable "az_instance_types" {
+  description = "Instance types keyed like public_subnets_map. When create_asg_per_az is true, each entry creates one ASG using minimum_group_size as its initial/minimum count and maximum_group_size as its maximum. Each instance type must be nonempty; gateway_instance_type must be omitted or null. An empty map creates no ASGs in per-AZ mode. With create_asg_per_az=false, this map must be empty and one ASG spans selected AZs."
+  type        = map(string)
+  default     = {}
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for instance_type in values(var.az_instance_types) : try(length(trimspace(instance_type)) > 0, false)])
+    error_message = "Each az_instance_types value must be a nonempty instance type; there is no gateway_instance_type fallback."
   }
 }

@@ -496,17 +496,23 @@ resource "aws_iam_instance_profile" "instance_profile" {
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_low" {
   alarm_name = format("%s_alarm_low", aws_autoscaling_group.asg.name)
   metric_name = "CPUUtilization"
-  alarm_description = "Scale-down if CPU < 60% for 10 minutes"
+  alarm_description = "Scale-down if CPU < ${var.scale_in_cpu_threshold}% for 10 minutes"
   namespace = "AWS/EC2"
   statistic = "Average"
   period = 300
   evaluation_periods = 2
-  threshold = 60
+  threshold = var.scale_in_cpu_threshold
   alarm_actions = [aws_autoscaling_policy.scale_down_policy.arn]
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.asg.name
   }
   comparison_operator = "LessThanThreshold"
+  lifecycle {
+    precondition {
+      condition     = var.scale_in_cpu_threshold < var.scale_out_cpu_threshold
+      error_message = "scale_in_cpu_threshold (${var.scale_in_cpu_threshold}) must be lower than scale_out_cpu_threshold (${var.scale_out_cpu_threshold}). Keep it at least 20 points lower to avoid flapping."
+    }
+  }
 }
 resource "aws_autoscaling_policy" "scale_down_policy" {
   autoscaling_group_name = aws_autoscaling_group.asg.name
@@ -518,12 +524,12 @@ resource "aws_autoscaling_policy" "scale_down_policy" {
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm_high" {
   alarm_name = format("%s_alarm_high", aws_autoscaling_group.asg.name)
   metric_name = "CPUUtilization"
-  alarm_description = "Scale-up if CPU > 80% for 10 minutes"
+  alarm_description = "Scale-up if CPU > ${var.scale_out_cpu_threshold}% for 10 minutes"
   namespace = "AWS/EC2"
   statistic = "Average"
   period = 300
   evaluation_periods = 2
-  threshold = 80
+  threshold = var.scale_out_cpu_threshold
   alarm_actions = [aws_autoscaling_policy.scale_up_policy.arn]
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.asg.name
@@ -534,7 +540,7 @@ resource "aws_autoscaling_policy" "scale_up_policy" {
   autoscaling_group_name = aws_autoscaling_group.asg.name
   name = format("%s_scale_up", aws_autoscaling_group.asg.name)
   adjustment_type = "ChangeInCapacity"
-  cooldown = 300
+  cooldown = var.scale_out_cooldown
   scaling_adjustment = 1
 }
 
